@@ -1,0 +1,47 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw; /* Agora ocupa toda a largura */
+  background-color: #faf5ff;
+  padding: 30px; /* Evita que os elementos fiquem muito compactados */
+}
+
+h2 {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 4rem; /* Maior para parecer mais profissional */
+  font-weight: bold;
+  color: rgb(11, 11, 11);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+  width: 100%; /* Garantir que a área dos botões ocupe toda a largura do contêiner */
+}
+
+.btn {
+  background-color: rgb(91, 87, 87);
+  color: white;
+  padding: 20px 40px; /* Aumentando o padding para botões maiores */
+  border: none;
+  cursor: pointer;
+  font-size: 1.6rem; /* Aumentando o tamanho da fonte */
+  border-radius: 8px;
+  width: 100%; /* O botão ocupará toda a largura do seu contêiner */
+  max-width: 300px; /* Limita a largura dos botões a 300px */
+  text-align: center;
+}
+
+.btn:hover {
+  opacity: 0.8;
+}

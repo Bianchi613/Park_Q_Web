@@ -1,0 +1,93 @@
+.register-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Ajuste para ocupar a altura total da tela */
+  background-color: #faf5ff;
+  text-align: left;
+  padding: 40px;
+}
+
+h2 {
+  font-size: 2.8rem;
+  color: rgb(33, 33, 33); /* Título com texto mais escuro */
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 500px; /* Garantir que o formulário tenha largura máxima de 500px */
+  background: rgb(255, 255, 255);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(227, 220, 220, 0.1);
+}
+
+label {
+  text-align: left;
+  font-size: 1rem; /* Tamanho ajustado para melhor leitura */
+  color: #333; /* Cor mais escura para o texto do label */
+  width: 100%; /* Garantir que o label ocupe toda a largura disponível */
+}
+
+input {
+  width: 100%; /* Garante que os inputs ocupem toda a largura disponível do formulário */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: rgb(240, 240, 240); /* Altera o fundo dos campos de input para cinza claro */
+  color: #333; /* Cor do texto mais escura nos campos de entrada */
+}
+
+.perfil-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.perfil-toggle span {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.btn {
+  background-color: rgb(50, 48, 48); /* Fundo preto do botão */
+  color: white; /* Texto branco dentro do botão */
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  width: 100%; /* O botão ocupará 100% da largura do formulário */
+  max-width: 250px; /* Limita a largura do botão */
+  margin: 20px auto 0; /* Centraliza o botão e adiciona espaçamento superior */
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Responsividade: Ajuste para telas menores */
+@media (max-width: 600px) {
+  .register-container {
+    padding: 20px; /* Menos padding em telas menores */
+  }
+
+  h2 {
+    font-size: 2rem; /* Reduzir o tamanho do título */
+  }
+
+  form {
+    width: 100%;
+    max-width: 100%; /* O formulário vai ocupar toda a largura da tela */
+  }
+
+  .btn {
+    width: 100%; /* O botão ocupará toda a largura em telas pequenas */
+  }
+}

@@ -1,0 +1,92 @@
+/* Container da reserva */
+.reservation-container {
+    padding: 40px;
+    background-color: #f8f9fa;
+    min-height: 1vh; /* Garantir que ocupe a altura total da tela */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza o conteúdo */
+  }
+  
+ 
+  
+  /* Ajustes para o conteúdo abaixo do Header */
+  .reservation-container {
+    margin-top: 80px; /* Para não sobrepor o conteúdo no topo */
+    padding: 40px 20px;
+  }
+  
+  /* Lista de vagas */
+  .vaga-list {
+    display: flex;
+    flex-direction: column;
+    width: 300%;
+    max-width: 800px;
+    margin: -0.3 auto; /* Centraliza a lista */
+  }
+  
+  /* Item de vaga */
+  .vaga-item {
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  .header h2 {
+    font-size: 2rem;
+    margin: 0;
+  }
+  
+  /* Informações da vaga */
+  .vaga-info {
+    flex: 1;
+    font-size: 16px;
+  }
+  
+  .vaga-info h3 {
+    margin: 0;
+  }
+  
+  .vaga-info p {
+    margin: 5px 0;
+  }
+  
+  /* Botão de confirmação */
+  .confirm-button {
+    padding: 10px 20px;
+    background-color: #18191a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .confirm-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .confirm-button:hover {
+    background-color: #0d0e0e;
+  }
+  
+  /* Botão de voltar */
+  .back-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #f0ad4e;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .back-button:hover {
+    background-color: #ec971f;
+  }
+  
+  

@@ -1,0 +1,150 @@
+.client-dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px; /* Aumentei o padding no topo para melhorar a parte superior */
+  background-color: #faf5ff;
+  min-height: 100vh; /* Garante que ocupe 100% da altura da tela */
+  justify-content: flex-start; /* Alinha os itens no topo */
+  box-sizing: border-box; /* Garante que o padding não afete o layout */
+  overflow: hidden; /* Evita overflow para garantir que o conteúdo superior seja visível */
+}
+
+.header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-size: 2.5rem; /* Aumentei o tamanho da fonte para tornar o título mais visível */
+  color: #333;
+  margin-bottom: 20px; /* Garante que o título não sobreponha a busca */
+}
+
+.search-bar {
+  padding: 12px;
+  width: 80%;
+  max-width: 500px; /* Aumentei o tamanho máximo da barra de busca */
+  margin-bottom: 30px; /* Coloquei mais margem para separar bem a busca do conteúdo */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Garante que o padding não afete a largura do campo */
+  background-color: #fff; /* Garantindo que o fundo da barra seja branco */
+}
+
+.error-message {
+  color: red;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.estacionamentos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Aumentei o espaço entre os itens para melhor visibilidade */
+  width: 100%;
+  max-width: 600px;
+  overflow-y: auto; /* Torna a lista rolável */
+  max-height: calc(100vh - 200px); /* Limita a altura da lista de estacionamentos */
+}
+
+.estacionamento-item {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(92, 91, 91, 0.15); /* Aumentei a sombra para destacar melhor */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s ease-in-out; /* Efeito de hover mais suave */
+}
+
+.estacionamento-item:hover {
+  transform: scale(1.02); /* Aumenta o item de estacionamento ao passar o mouse */
+}
+
+.estacionamento-info {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.estacionamento-image {
+  width: 120px; /* Aumentei o tamanho da imagem */
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.default-image {
+  width: 120px;
+  height: 120px;
+  background-color: #ccc;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.reservar-button {
+  background-color: #020203;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.reservar-button:hover {
+  background-color: #141516;
+}
+
+.voltar-button {
+  background-color: #555;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.voltar-button:hover {
+  background-color: #666;
+}
+
+/* Estilos Responsivos para telas pequenas */
+@media (max-width: 768px) {
+  .search-bar {
+    width: 100%; /* Faz com que o campo de busca ocupe 100% da largura da tela */
+  }
+
+  .estacionamentos-list {
+    width: 100%;
+    max-width: 100%; /* Permite que a lista de estacionamentos ocupe a tela inteira */
+  }
+}
+
+@media (max-width: 480px) {
+  .client-dashboard {
+    padding: 20px 10px; /* Reduz o padding em dispositivos pequenos */
+  }
+
+  h2 {
+    font-size: 2rem; /* Reduz o tamanho da fonte do título em telas pequenas */
+  }
+
+  .reservar-button,
+  .voltar-button {
+    font-size: 0.9rem; /* Reduz o tamanho da fonte do botão */
+    padding: 10px 20px; /* Ajusta o padding dos botões */
+  }
+}
