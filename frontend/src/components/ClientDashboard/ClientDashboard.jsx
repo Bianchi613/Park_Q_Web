@@ -34,18 +34,8 @@ const ClientDashboard = () => {
   );
 
   const handleReserva = (estacionamentoId) => {
-    const clienteId = 1; // Exemplo, você deve obter o id do cliente de alguma forma
-
-    // Requisição para reservar vaga
-    axios.post(`http://localhost:3000/clientes/${clienteId}/reservarVaga`, { estacionamentoId })
-      .then(() => {
-        alert('Reserva realizada com sucesso!');
-        navigate('/reservas');
-      })
-      .catch(error => {
-        setErrorMessage('Erro ao realizar a reserva. Tente novamente.');
-        console.error('Erro ao reservar vaga:', error);
-      });
+    // Redireciona para a página de reserva com o ID do estacionamento
+    navigate(`/reservation/${estacionamentoId}`);
   };
 
   const handleVoltar = () => {
@@ -86,7 +76,7 @@ const ClientDashboard = () => {
               </div>
               <button
                 className="reservar-button"
-                onClick={() => handleReserva(estacionamento.id)}
+                onClick={() => handleReserva(estacionamento.id)} // Agora redireciona para a página de reservas
               >
                 Reservar
               </button>

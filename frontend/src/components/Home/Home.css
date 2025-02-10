@@ -5,14 +5,14 @@
   align-items: center;
   height: 75vh;
   width: 90vw; /* Agora ocupa toda a largura */
-  background-color: #faf5ff;
+  background-color:white;
   text-align: center;
   padding: 20px; /* Evita que os elementos fiquem muito compactados */
 }
 
 h2 {
   font-size: 1.2rem;
-  color: #555;
+  color: #090909;
   margin-bottom: 10px;
 }
 
@@ -31,7 +31,7 @@ h1 {
 }
 
 .btn {
-  background-color: rgb(91, 87, 87);
+  background-color: rgb(0, 0, 0);
   color: white;
   padding: 20px 40px; /* Aumentando o padding para botões maiores */
   border: none;
