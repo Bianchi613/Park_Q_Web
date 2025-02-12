@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Usuario } from './usuario.model';
 
@@ -13,7 +13,7 @@ export class UsuarioRepository {
    * Cria um novo usuário no banco de dados
    * @param data Dados do usuário
    */
-  async create(data: any): Promise<Usuario> {
+  async create(data: Usuario): Promise<Usuario> {
     return await this.usuarioModel.create(data);
   }
 
@@ -29,7 +29,11 @@ export class UsuarioRepository {
    * @param id ID do usuário
    */
   async findOne(id: number): Promise<Usuario> {
-    return await this.usuarioModel.findByPk(id);
+    const usuario = await this.usuarioModel.findByPk(id);
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+    }
+    return usuario;
   }
 
   /**
@@ -47,21 +51,22 @@ export class UsuarioRepository {
    * @param id ID do usuário
    * @param data Dados a serem atualizados
    */
-  async update(id: number, data: any): Promise<[number, Usuario[]]> {
-    return await this.usuarioModel.update(data, {
-      where: { id },
-      returning: true,
-    });
+  async update(id: number, data: Partial<Usuario>): Promise<Usuario> {
+    const usuario = await this.findOne(id); // Garante que o usuário existe antes de atualizar
+    await usuario.update(data);
+    return usuario;
   }
 
   /**
    * Exclui um usuário do banco de dados
    * @param id ID do usuário
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: number): Promise<boolean> {
     const usuario = await this.usuarioModel.findByPk(id);
-    if (usuario) {
-      await usuario.destroy();
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
+    await usuario.destroy();
+    return true;
   }
 }
