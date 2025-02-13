@@ -20,8 +20,9 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import * as bcrypt from 'bcrypt';
 
-@ApiTags('Usuários') // Define a categoria no Swagger
+@ApiTags('Usuários')
 @Controller('usuarios')
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
@@ -56,10 +57,14 @@ export class UsuarioController {
         throw new BadRequestException('ADMIN precisa ter um id_estacionamento.');
       }
 
+      // Criptografa a senha antes de salvar
+      const salt = await bcrypt.genSalt(10);
+      data.senha = await bcrypt.hash(data.senha, salt);
+
       return await this.usuarioService.create(data);
     } catch (error) {
       throw new HttpException(
-        error.message || 'Erro ao criar usuário',
+        `Erro ao criar usuário: ${error.message}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -72,7 +77,11 @@ export class UsuarioController {
     description: 'Lista de usuários retornada com sucesso.',
   })
   async findAll() {
-    return this.usuarioService.findAll();
+    const usuarios = await this.usuarioService.findAll();
+    return usuarios.map((usuario) => {
+      delete usuario.senha; // Remove a senha do objeto de retorno
+      return usuario;
+    });
   }
 
   @Get(':id')
@@ -82,10 +91,12 @@ export class UsuarioController {
   @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     try {
-      return await this.usuarioService.findOne(id);
+      const usuario = await this.usuarioService.findOne(id);
+      delete usuario.senha; // Remove a senha do objeto de retorno
+      return usuario;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Erro ao buscar usuário',
+        `Erro ao buscar usuário: ${error.message}`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -122,10 +133,16 @@ export class UsuarioController {
         throw new BadRequestException('ADMIN precisa ter um id_estacionamento.');
       }
 
+      // Se a senha for fornecida, criptografa antes de atualizar
+      if (data.senha) {
+        const salt = await bcrypt.genSalt(10);
+        data.senha = await bcrypt.hash(data.senha, salt);
+      }
+
       return await this.usuarioService.update(id, data);
     } catch (error) {
       throw new HttpException(
-        error.message || 'Erro ao atualizar usuário',
+        `Erro ao atualizar usuário: ${error.message}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -141,7 +158,7 @@ export class UsuarioController {
       return await this.usuarioService.delete(id);
     } catch (error) {
       throw new HttpException(
-        error.message || 'Erro ao excluir usuário',
+        `Erro ao excluir usuário: ${error.message}`,
         HttpStatus.NOT_FOUND,
       );
     }

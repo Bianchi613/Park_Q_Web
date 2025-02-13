@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Importa o hook para redirecionamento
 import axios from "axios";
 import "./Register.css";
 
 function Register() {
+  const navigate = useNavigate(); // Hook para redirecionar o usuário
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
     telefone: "",
     senha: "",
     confirmarSenha: "",
-    cpf: "",
+    CPF: "",  // CPF deve estar em maiúsculas
+    login: "",
     isAdmin: false,
   });
 
@@ -32,20 +35,32 @@ function Register() {
       return;
     }
 
+    if (!formData.CPF) {
+      setError("O CPF é obrigatório.");
+      return;
+    }
+
+    console.log("Dados enviados:", formData); // Log para depuração
+
     try {
       const response = await axios.post("http://localhost:3000/usuarios", {
         nome: formData.nome,
         email: formData.email,
         telefone: formData.telefone,
         senha: formData.senha,
-        cpf: formData.cpf,
-        role: formData.isAdmin ? "admin" : "cliente",
+        CPF: formData.CPF, // CPF deve estar em maiúsculas
+        login: formData.login,
+        role: formData.isAdmin ? "ADMIN" : "CLIENT",
       });
 
       alert("Cadastro realizado com sucesso!");
       console.log(response.data);
+
+      // 🔥 Redireciona o usuário para a tela de login após o cadastro
+      navigate("/login");
+
     } catch (err) {
-      setError("Erro ao cadastrar usuário. Verifique os dados e tente novamente.");
+      setError(err.response?.data?.message || "Erro ao cadastrar usuário. Verifique os dados e tente novamente.");
       console.error(err);
     }
   };
@@ -62,14 +77,17 @@ function Register() {
         <label>Telefone</label>
         <input type="tel" name="telefone" value={formData.telefone} onChange={handleChange} required />
 
+        <label>CPF</label>
+        <input type="text" name="CPF" value={formData.CPF} onChange={handleChange} required />
+
+        <label>Login</label>
+        <input type="text" name="login" value={formData.login} onChange={handleChange} required />
+
         <label>Senha</label>
         <input type="password" name="senha" value={formData.senha} onChange={handleChange} required />
 
         <label>Confirmação de Senha</label>
         <input type="password" name="confirmarSenha" value={formData.confirmarSenha} onChange={handleChange} required />
-
-        <label>CPF</label>
-        <input type="text" name="cpf" value={formData.cpf} onChange={handleChange} required />
 
         <div className="admin-toggle">
           <label>Tipo de Perfil</label>

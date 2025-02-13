@@ -6,7 +6,7 @@
   height: 100vh; /* Ajuste para ocupar a altura total da tela */
   background-color: #faf5ff;
   text-align: left;
-  padding: 40px;
+  padding: 20px;
 }
 
 h2 {
@@ -90,4 +90,9 @@ input {
   .btn {
     width: 100%; /* O botão ocupará toda a largura em telas pequenas */
   }
+}
+.register-container {
+  width: 100vw; /* Garante 100% da largura da tela */
+  height: 100vh; /* Garante 100% da altura da tela */
+  background-color: #ffffff; /* Cor desejada */
 }

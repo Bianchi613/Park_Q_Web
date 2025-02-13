@@ -9,8 +9,7 @@ function Login() {
     senha: '',
   });
 
-  const [error, setError] = useState(""); // Adicionando um estado de erro para mensagens
-
+  const [error, setError] = useState(''); // Estado para mensagens de erro
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -23,35 +22,38 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Resetando o erro antes de enviar
+    setError(''); // Resetando o erro antes de enviar
 
     try {
-      // Enviando a requisição para a API de login com a senha em texto simples
+      // Enviando a requisição para a API de login
       const response = await axios.post('http://localhost:3000/auth/login', {
         email: formData.email,
-        senha: formData.senha, // Enviando a senha em texto simples
+        senha: formData.senha,
       });
 
-      console.log('Resposta da API:', response.data);  // Verifique o que está sendo retornado pela API
+      console.log('Resposta da API:', response.data); // Verifique o que está sendo retornado pela API
 
-      const role = response.data.role;
-      const token = response.data.access_token;
-      const userId = response.data.id; // Extraindo o ID do usuário da resposta
-  
+      const { role, access_token: token, id: userId, id_estacionamento } = response.data;
 
       if (role && token) {
-        // Armazenar o token JWT no localStorage
+        // Armazenar o token JWT e o ID do usuário no localStorage
         localStorage.setItem('token', token);
-        localStorage.setItem('userId', userId);  // Armazenando o ID do usuário
+        localStorage.setItem('userId', userId);
 
+        // Armazenar o id_estacionamento, se existir
+        if (id_estacionamento) {
+          localStorage.setItem('id_estacionamento', id_estacionamento);
+        } else {
+          console.warn('id_estacionamento não encontrado na resposta do login.');
+        }
 
         // Redireciona conforme o perfil do usuário
         if (role === 'ADMIN') {
-          console.log("Redirecionando para o Admin Dashboard");
+          console.log('Redirecionando para o Admin Dashboard');
           navigate('/admin-dashboard', { replace: true });
         } else if (role === 'CLIENT') {
-          console.log("Redirecionando para o Client Dashboard");
-          navigate('/client-dashboard', { replace: true });  // Redireciona para o dashboard do cliente
+          console.log('Redirecionando para o Client Dashboard');
+          navigate('/client-dashboard', { replace: true });
         } else {
           setError('Perfil inválido');
         }
@@ -60,7 +62,7 @@ function Login() {
       }
     } catch (error) {
       console.error('Erro ao fazer login:', error);
-      setError('Erro ao fazer login.');
+      setError(error.response?.data?.message || 'Erro ao fazer login.');
     }
   };
 
@@ -90,9 +92,13 @@ function Login() {
 
         {error && <div className="error-message">{error}</div>}
 
-        <button type="submit" className="btn">Entrar</button>
+        <button type="submit" className="btn">
+          Entrar
+        </button>
 
-        <a href="/forgot-password" className="forgot-password">Esqueceu a senha?</a>
+        <a href="/forgot-password" className="forgot-password">
+          Esqueceu a senha?
+        </a>
       </form>
     </div>
   );

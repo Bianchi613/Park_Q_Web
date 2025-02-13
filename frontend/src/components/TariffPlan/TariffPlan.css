@@ -1,0 +1,41 @@
+.carousel-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 16px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Esconde a barra de rolagem no Firefox */
+    -ms-overflow-style: none; /* Esconde a barra de rolagem no IE/Edge */
+  }
+  
+  .carousel-container::-webkit-scrollbar {
+    display: none; /* Esconde a barra de rolagem no Chrome/Safari */
+  }
+  
+  .carousel-item {
+    background-color: white;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    width: 280px; /* Largura fixa para cada item */
+    scroll-snap-align: start;
+    transition: transform 0.3s ease;
+  }
+  
+  .carousel-item:hover {
+    transform: translateY(-5px); /* Efeito de levantar ao passar o mouse */
+  }
+  
+  .carousel-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  
+  .carousel-buttons button {
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }

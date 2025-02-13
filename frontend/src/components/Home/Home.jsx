@@ -4,15 +4,17 @@ import "./Home.css";
 function Home() {
   return (
     <div className="home-container">
-      <h2>Bem-Vindos!</h2>
-      <h1>Park Q</h1>
-      <div className="buttons">
-        <Link to="/login">
-          <button className="btn">Entrar</button>
-        </Link>
-        <Link to="/register">
-          <button className="btn">Registrar-se</button>
-        </Link>
+      <div className="home-content">
+        <h1 className="home-title">Park Q</h1>
+        <h2 className="home-subtitle">Bem-Vindo ao Futuro do Estacionamento</h2>
+        <div className="buttons">
+          <Link to="/login">
+            <button className="btn btn-primary">Entrar</button>
+          </Link>
+          <Link to="/register">
+            <button className="btn btn-secondary">Registrar-se</button>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ body {
   align-items: center;     /* Centraliza verticalmente */
   height: 100vh;           /* Garante que o body ocupe toda a altura da tela */
   margin: 0;               /* Remove a margem padrão */
-  background-color: #f4f4f4; /* Cor de fundo suave para o corpo da página */
+  background-color: #ffffff; /* Cor de fundo suave para o corpo da página */
 }
 
 .login-container {
@@ -14,7 +14,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #faf5ff; /* Cor de fundo suave para o container */
+  background-color: #ffffff; /* Cor de fundo suave para o container */
   text-align: center;
   padding: 40px;
 }
@@ -31,7 +31,7 @@ form {
   gap: 30px;
   width: 100%;
   max-width: 400px;
-  background: #fff; /* Cor de fundo do formulário */
+  background: #ffffff; /* Cor de fundo do formulário */
   padding: 50px;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(92, 91, 91, 0.1);
@@ -47,9 +47,9 @@ input {
   width: 100%;
   padding: 12px;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #ffffff;
   border-radius: 5px;
-  background-color: #f0f0f0;
+  background-color: #ffffff;
   color: #333;
 }
 
@@ -89,4 +89,9 @@ input {
   form {
     width: 100%;
   }
+}
+.login-container {
+  width: 100vw; /* Garante 100% da largura da tela */
+  height: 100vh; /* Garante 100% da altura da tela */
+  background-color: #ffffff; /* Cor desejada */
 }

@@ -11,9 +11,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Faz login e retorna o token JWT' }) // Descrição do endpoint
   @ApiResponse({
     status: 200, // 🔹 Correção do status para 200 OK
-    description: 'Login bem-sucedido. Retorna o token JWT e o perfil do usuário.',
+    description: 'Login bem-sucedido. Retorna o token JWT, o ID e o perfil do usuário.',
     schema: {
       example: {
+        id: 1, // ✅ Agora o ID do usuário aparece primeiro
         access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
         role: 'ADMIN', // Inclui o role do usuário
       },
@@ -46,7 +47,14 @@ export class AuthController {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    // Retorna o token e o role do usuário
-    return this.authService.login(user);
+    // Gera o token JWT e retorna os dados necessários
+    const authResult = await this.authService.login(user);
+
+    // ✅ Agora incluímos o ID na resposta
+    return {
+      id: user.id, 
+      access_token: authResult.access_token,
+      role: authResult.role
+    };
   }
 }

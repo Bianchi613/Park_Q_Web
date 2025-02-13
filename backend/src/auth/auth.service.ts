@@ -22,7 +22,7 @@ export class AuthService {
 
     console.log(`✅ Usuário encontrado: ${user.email}`);
 
-    // 🚀 Comparando a senha usando `comparePassword()` da model!
+    // 🚀 Comparando a senha usando `bcrypt.compare()`
     console.log('🛠️ Testando user.comparePassword()...');
     const isPasswordValid = await bcrypt.compare(senha, user.senha);
     console.log(`🔍 Resultado: ${isPasswordValid ? '✅ Senha correta' : '❌ Senha inválida'}`);
@@ -41,12 +41,13 @@ export class AuthService {
     };
   }
 
-  // Função para gerar o token JWT e retornar junto com o role do usuário
-  async login(user: { id: number; email: string; role: string }): Promise<{ access_token: string; role: string }> {
+  // 🔥 Correção: Agora o método `login` também retorna o ID do usuário
+  async login(user: { id: number; email: string; role: string }): Promise<{ id: number; access_token: string; role: string }> {
     const payload = { id: user.id, email: user.email, role: user.role };
     const access_token = this.jwtService.sign(payload);
 
     return {
+      id: user.id,  // ✅ Agora o ID do usuário é incluído na resposta
       access_token,
       role: user.role,
     };

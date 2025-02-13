@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Usuario } from './usuario.model';
+import { Transaction } from 'sequelize';
 
 @Injectable()
 export class UsuarioRepository {
@@ -12,16 +13,20 @@ export class UsuarioRepository {
   /**
    * Cria um novo usuário no banco de dados
    * @param data Dados do usuário
+   * @param transaction Transação opcional
    */
-  async create(data: Usuario): Promise<Usuario> {
-    return await this.usuarioModel.create(data);
+  async create(data: Partial<Usuario>, transaction?: Transaction): Promise<Usuario> {
+    return await this.usuarioModel.create(data, { transaction });
   }
 
   /**
    * Retorna todos os usuários do banco de dados
    */
   async findAll(): Promise<Usuario[]> {
-    return await this.usuarioModel.findAll();
+    const usuarios = await this.usuarioModel.findAll({
+      attributes: { exclude: ['senha'] }, // Exclui a senha do retorno
+    });
+    return usuarios;
   }
 
   /**
@@ -29,7 +34,9 @@ export class UsuarioRepository {
    * @param id ID do usuário
    */
   async findOne(id: number): Promise<Usuario> {
-    const usuario = await this.usuarioModel.findByPk(id);
+    const usuario = await this.usuarioModel.findByPk(id, {
+      attributes: { exclude: ['senha'] }, // Exclui a senha do retorno
+    });
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
@@ -50,23 +57,32 @@ export class UsuarioRepository {
    * Atualiza os dados de um usuário
    * @param id ID do usuário
    * @param data Dados a serem atualizados
+   * @param transaction Transação opcional
    */
-  async update(id: number, data: Partial<Usuario>): Promise<Usuario> {
-    const usuario = await this.findOne(id); // Garante que o usuário existe antes de atualizar
-    await usuario.update(data);
+  async update(
+    id: number,
+    data: Partial<Usuario>,
+    transaction?: Transaction,
+  ): Promise<Usuario> {
+    const usuario = await this.usuarioModel.findByPk(id, { transaction });
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+    }
+    await usuario.update(data, { transaction });
     return usuario;
   }
 
   /**
    * Exclui um usuário do banco de dados
    * @param id ID do usuário
+   * @param transaction Transação opcional
    */
-  async delete(id: number): Promise<boolean> {
-    const usuario = await this.usuarioModel.findByPk(id);
+  async delete(id: number, transaction?: Transaction): Promise<boolean> {
+    const usuario = await this.usuarioModel.findByPk(id, { transaction });
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
-    await usuario.destroy();
+    await usuario.destroy({ transaction });
     return true;
   }
 }

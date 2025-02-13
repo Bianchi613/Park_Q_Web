@@ -1,48 +1,101 @@
+/* Estilos Gerais */
 .home-container {
-  display: flex;
-  flex-direction: column;
+  display: block;
   justify-content: center;
   align-items: center;
-  height: 75vh;
-  width: 90vw; /* Agora ocupa toda a largura */
-  background-color:white;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff, #ffffff);
+  color: white;
+  font-family: "Arial", sans-serif;
   text-align: center;
-  padding: 20px; /* Evita que os elementos fiquem muito compactados */
+  padding: 20px;
 }
 
-h2 {
-  font-size: 1.2rem;
-  color: #090909;
-  margin-bottom: 10px;
+.home-content {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  align-items: center;
+  width: 100%;
 }
 
-h1 {
-  font-size: 4rem; /* Maior para parecer mais profissional */
+.home-title {
+  font-size: 3.5rem;
   font-weight: bold;
-  color: rgb(11, 11, 11);
+  margin-bottom: 10px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.home-subtitle {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  animation: fadeIn 1.5s ease-in-out;
 }
 
 .buttons {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 30px;
-  width: 100%; /* Garantir que a área dos botões ocupe toda a largura do contêiner */
+  justify-content: center;
+  gap: 20px;
+  animation: slideUp 1s ease-in-out;
 }
 
 .btn {
-  background-color: rgb(0, 0, 0);
-  color: white;
-  padding: 20px 40px; /* Aumentando o padding para botões maiores */
+  padding: 12px 24px;
   border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  font-size: 1.6rem; /* Aumentando o tamanho da fonte */
-  border-radius: 8px;
-  width: 100%; /* O botão ocupará toda a largura do seu contêiner */
-  max-width: 300px; /* Limita a largura dos botões a 300px */
-  text-align: center;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
 }
 
-.btn:hover {
-  opacity: 0.8;
+.btn-primary {
+  background-color: #0b0b0b;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #616161;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(83, 83, 83, 0.4);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 2px solid #bfbfbf;
+  color: #888888;
+}
+
+.btn-secondary:hover {
+  background-color: #bdbcbc;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(56, 56, 56, 0.4);
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

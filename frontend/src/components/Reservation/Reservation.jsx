@@ -1,74 +1,167 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import './Reservation.css';
-import Header from '../Layout/Header'; // Corrigido o caminho do Header
+import Header from '../Layout/Header';
 
 const Reservation = () => {
   const [vagas, setVagas] = useState([]);
-  const { id } = useParams(); // Obtém o ID do estacionamento da URL
+  const [estacionamento, setEstacionamento] = useState(null);
+  const [coordenadas, setCoordenadas] = useState([-22.9068, -43.1729]); // Coordenadas padrão (Rio de Janeiro)
+  const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Requisição para obter as vagas do estacionamento específico
-    axios.get(`http://localhost:3000/vagas?id_estacionamento=${id}`)
+    // Buscar informações do estacionamento
+    axios.get(`http://localhost:3000/estacionamentos/${id}`)
       .then(response => {
-        setVagas(response.data);
+        setEstacionamento(response.data);
+        // Obter coordenadas a partir do endereço
+        geocodificarEndereco(response.data.localizacao);
       })
       .catch(error => {
-        console.error('Erro ao carregar as vagas:', error);
+        console.error('Erro ao carregar o estacionamento:', error);
+        // Usar coordenadas padrão em caso de erro
+        setCoordenadas([-22.9068, -43.1729]);
       });
+
+    // Buscar vagas
+    axios.get(`http://localhost:3000/vagas?id_estacionamento=${id}`)
+      .then(response => setVagas(response.data))
+      .catch(error => console.error('Erro ao carregar as vagas:', error));
   }, [id]);
 
-  const handleConfirm = (vagaId) => {
-    // Requisição para reservar a vaga
-    axios.post(`http://localhost:3000/vagas/${vagaId}/reservar`)
-      .then(() => {
-        // Redireciona para a página de pagamento
-        navigate('/payment');
+  // Função para geocodificar o endereço
+  const geocodificarEndereco = (endereco) => {
+    const apiKey = 'SUA_CHAVE_DE_API_DO_GOOGLE_MAPS'; // Substitua pela sua chave de API
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(endereco)}&key=${apiKey}`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        if (data.results && data.results.length > 0) {
+          const location = data.results[0].geometry.location;
+          setCoordenadas([location.lat, location.lng]); // Define as coordenadas
+        } else {
+          console.error('Endereço não encontrado. Usando coordenadas padrão.');
+          setCoordenadas([-22.9068, -43.1729]); // Usar coordenadas padrão
+        }
       })
       .catch(error => {
-        console.error('Erro ao reservar a vaga:', error);
+        console.error('Erro ao buscar coordenadas:', error);
+        setCoordenadas([-22.9068, -43.1729]); // Usar coordenadas padrão
       });
   };
 
+  const handleConfirm = (vaga) => {
+    const userId = localStorage.getItem('userId'); // Obtém o ID do usuário do localStorage
+
+    if (!userId) {
+      alert('Usuário não autenticado. Faça login para continuar.');
+      navigate('/login'); // Redireciona para a página de login
+      return;
+    }
+
+    if (vaga.status === 'disponivel') {
+      // Redireciona para a página de pagamento com os detalhes da vaga
+      navigate('/payment', { 
+        state: { 
+          id_vaga: vaga.id,               // ID da vaga
+          id_usuario: userId,             // ID do usuário
+          valor: vaga.valor               // Valor da vaga
+        }
+      });
+    } else {
+      alert('Esta vaga não está disponível para reserva.');
+    }
+  };
+
   const handleBack = () => {
-    // Volta para a página anterior
     navigate(-1);
+  };
+
+  // Configurações do carrossel
+  const carouselSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+        },
+      },
+    ],
   };
 
   return (
     <div className="reservation-container">
-     
-  
-      <h2>Escolha uma vaga para reservar</h2>
-      <Header /> {/* Adicionando o Header acima da lista de estacionamentos */}
-      
-      <div className="vaga-list">
+      <Header />
+      <h2>Reservar uma vaga</h2>
+
+      {/* Mapa interativo */}
+      <div className="map-container">
+        <MapContainer
+          center={coordenadas} // Usando coordenadas obtidas ou padrão
+          zoom={15} // Ajuste o zoom conforme necessário
+          className="leaflet-container"
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&copy; OpenStreetMap contributors"
+          />
+          <Marker position={coordenadas}>
+            <Popup>📍 {estacionamento ? estacionamento.nome : 'Estacionamento'}</Popup>
+          </Marker>
+        </MapContainer>
+      </div>
+
+      {/* Carrossel de vagas */}
+      <div className="vaga-carousel">
         {vagas.length > 0 ? (
-          vagas.map(vaga => (
-            <div key={vaga.id} className="vaga-item">
-              <div className="vaga-info">
-                <h3>{`Vaga ${vaga.numero}`}</h3>
-                <p>{vaga.status === 'disponivel' ? 'Disponível' : 'Indisponível'}</p>
-                <p>{vaga.tipo}</p>
+          <Slider {...carouselSettings}>
+            {vagas.map(vaga => (
+              <div key={vaga.id} className="vaga-item">
+                <div className="vaga-info">
+                  <h3>{`Vaga ${vaga.numero}`}</h3>
+                  <p className={`status ${vaga.status}`}>
+                    {vaga.status === 'disponivel' ? 'Disponível' : 'Indisponível'}
+                  </p>
+                  <p className="tipo">{vaga.tipo}</p>
+                </div>
+                <button
+                  className={`confirm-button ${vaga.status}`}
+                  disabled={vaga.status !== 'disponivel'}
+                  onClick={() => handleConfirm(vaga)}
+                >
+                  {vaga.status === 'disponivel' ? 'Confirmar' : 'Indisponível'}
+                </button>
               </div>
-              <button
-                className="confirm-button"
-                disabled={vaga.status !== 'disponivel'}
-                onClick={() => handleConfirm(vaga.id)}
-              >
-                {vaga.status === 'disponivel' ? 'Confirmar' : 'Indisponível'}
-              </button>
-            </div>
-          ))
+            ))}
+          </Slider>
         ) : (
-          <p>Não há vagas disponíveis no momento.</p>
+          <p className="no-vagas">Não há vagas disponíveis no momento.</p>
         )}
       </div>
-      <button className="back-button" onClick={handleBack}>
-        Voltar
-      </button>
+
+      {/* Botão de voltar */}
+      <button className="back-button" onClick={handleBack}>Voltar</button>
     </div>
   );
 };

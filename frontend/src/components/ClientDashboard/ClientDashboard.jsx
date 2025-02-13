@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // Mantendo apenas os hooks
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './ClientDashboard.css'; // Importando o CSS para estilização
@@ -58,22 +58,26 @@ const ClientDashboard = () => {
         {filteredEstacionamentos.length > 0 ? (
           filteredEstacionamentos.map(estacionamento => (
             <div key={estacionamento.id} className="estacionamento-item">
+              {/* Imagem à esquerda */}
+              {estacionamento.imagemUrl ? (
+                <img
+                  src={estacionamento.imagemUrl}
+                  alt={estacionamento.nome}
+                  className="estacionamento-image"
+                />
+              ) : (
+                <div className="default-image">Imagem indisponível</div>
+              )}
+
+              {/* Texto à direita */}
               <div className="estacionamento-info">
-                {/* Exibindo a imagem do estacionamento ou imagem padrão */}
-                {estacionamento.imagemUrl ? (
-                  <img
-                    src={estacionamento.imagemUrl}
-                    alt={estacionamento.nome}
-                    className="estacionamento-image"
-                  />
-                ) : (
-                  <div className="default-image">Imagem indisponível</div>
-                )}
                 <h3>{estacionamento.nome}</h3>
                 <p>{estacionamento.localizacao}</p>
                 <p>{estacionamento.capacidade} vagas disponíveis</p>
                 <p>Categoria: {estacionamento.categoria}</p>
               </div>
+
+              {/* Botão de reserva */}
               <button
                 className="reservar-button"
                 onClick={() => handleReserva(estacionamento.id)} // Agora redireciona para a página de reservas

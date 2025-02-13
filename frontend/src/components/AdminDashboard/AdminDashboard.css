@@ -1,0 +1,149 @@
+.admin-dashboard {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9fafb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .back-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .back-button:hover {
+    background-color: #5a6268;
+  }
+  
+  .vagas-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .vagas-scroll {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  
+  .vaga-card {
+    flex: 0 0 auto;
+    width: 150px;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    background-color: #e9ecef;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .vaga-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .vaga-card.ocupada {
+    background-color: #ffe3e3;
+  }
+  
+  .vaga-card.reservada {
+    background-color: #fff3cd;
+  }
+  
+  .vaga-numero {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .vaga-tipo,
+  .vaga-status {
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .middle-section {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .estacionamento-info,
+  .relatorio-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex: 1;
+  }
+  
+  .info-card,
+  .relatorio-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  .gerar-relatorio-button {
+    background-color: #030303;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+  }
+  
+  .gerar-relatorio-button:hover {
+    background-color: #070707;
+  }
+  
+  .buttons-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .nav-button {
+    background-color: #090909;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .nav-button:hover {
+    background-color: #4b4b4b;
+  }
+  
+  .loading-message,
+  .error-message {
+    text-align: center;
+    font-size: 16px;
+    color: #dc3545;
+  }
