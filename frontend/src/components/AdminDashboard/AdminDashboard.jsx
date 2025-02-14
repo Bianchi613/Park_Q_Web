@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Header from "../Layout/Header"; // Importando o Header
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -10,9 +11,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🔥 Pegando o ID do estacionamento do localStorage
   const estacionamentoId = localStorage.getItem("id_estacionamento");
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,14 +63,11 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
+      <Header /> {/* Incluindo o Header aqui */}
+
       <div className="dashboard-header">
         <h1>Painel do Administrador</h1>
-        <button
-          className="back-button"
-          onClick={() => navigate("/admin-dashboard")}
-        >
-          Voltar ao Início
-        </button>
+       
       </div>
 
       {/* Vagas na Parte Superior */}

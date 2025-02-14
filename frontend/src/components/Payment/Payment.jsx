@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './Payment.css';
-import Header from '../Layout/Header';
 
 const Payment = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -81,7 +80,6 @@ const Payment = () => {
 
   return (
     <div className="payment-container">
-      <Header />
       <h2>Escolha a forma de Pagamento:</h2>
       <div className="payment-methods">
         <label className="payment-option">
@@ -91,7 +89,7 @@ const Payment = () => {
             checked={paymentMethod === 'PIX'}
             onChange={handlePaymentChange}
           />
-          PIX
+          <right>Pagamento por PIX</right>
         </label>
         <label className="payment-option">
           <input

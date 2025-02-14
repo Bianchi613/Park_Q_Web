@@ -38,9 +38,7 @@ const ClientDashboard = () => {
     navigate(`/reservation/${estacionamentoId}`);
   };
 
-  const handleVoltar = () => {
-    navigate('/login'); // Redireciona para o login
-  };
+ 
 
   return (
     <div className="client-dashboard">
@@ -90,7 +88,7 @@ const ClientDashboard = () => {
           <p>Nenhum estacionamento encontrado para a busca.</p> // Mensagem quando não houver resultados
         )}
       </div>
-      <button className="voltar-button" onClick={handleVoltar}>Voltar</button>
+      
     </div>
   );
 };

@@ -1,61 +1,111 @@
 .payment-container {
-    background-color: #f8f8f8;
-    border-radius: 8px;
+  background-color: #ffffff; /* Cor de fundo mais limpa */
+  border-radius: 12px;
+  padding: 30px;
+  width: 350px; /* Largura um pouco maior para mais espaço */
+  margin: 0 auto;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Adicionando sombra suave */
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30px;
+  text-transform: uppercase; /* Título em maiúsculas para destacar */
+}
+
+.payment-methods {
+  margin-bottom: 30px;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #555;
+}
+
+.payment-option input {
+  margin-right: 15px;
+  transform: scale(1.2); /* Aumenta o tamanho dos inputs para destacar */
+}
+
+.payment-option label {
+  font-size: 14px;
+  font-weight: 400;
+  color: #777;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.confirm-button,
+.back-button {
+  padding: 12px 25px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  text-transform: uppercase; /* Deixa os botões em letras maiúsculas */
+}
+
+.confirm-button {
+  background-color: #28a745; /* Verde mais vibrante */
+  color: white;
+}
+
+.back-button {
+  background-color: #e74c3c; /* Vermelho mais forte */
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: #218838; /* Tom mais escuro de verde no hover */
+  transform: translateY(-2px); /* Efeito de elevação */
+}
+
+.back-button:hover {
+  background-color: #c0392b; /* Tom mais escuro de vermelho no hover */
+  transform: translateY(-2px); /* Efeito de elevação */
+}
+
+.confirm-button:focus,
+.back-button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Adiciona um leve destaque ao focar */
+}
+
+/* Melhorando responsividade */
+@media (max-width: 400px) {
+  .payment-container {
+    width: 90%; /* Responsividade em telas pequenas */
     padding: 20px;
-    width: 300px;
-    margin: 0 auto;
-    text-align: center;
   }
-  
+
   h2 {
-    color: #333;
-    margin-bottom: 20px;
+    font-size: 1.3rem;
   }
-  
-  .payment-methods {
-    margin-bottom: 20px;
-  }
-  
+
   .payment-option {
-    display: block;
-    margin: 10px 0;
-    font-size: 16px;
+    font-size: 14px;
   }
-  
-  .payment-option input {
-    margin-right: 10px;
-  }
-  
-  .buttons {
-    display: flex;
-    justify-content: space-between;
-  }
-  
+
   .confirm-button,
   .back-button {
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
   }
-  
-  .confirm-button {
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 4px;
-  }
-  
-  .back-button {
-    background-color: #f44336;
-    color: white;
-    border-radius: 4px;
-  }
-  
-  .confirm-button:hover {
-    background-color: #45a049;
-  }
-  
-  .back-button:hover {
-    background-color: #e53935;
-  }
-  
+}

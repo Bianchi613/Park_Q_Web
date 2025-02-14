@@ -2,6 +2,7 @@
 .home-container {
   display: block;
   justify-content: center;
+  background-color: var(--color-primary);
   align-items: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #ffffff, #ffffff);
@@ -9,6 +10,11 @@
   font-family: "Arial", sans-serif;
   text-align: center;
   padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centraliza o contêiner */
+  
 }
 
 .home-content {

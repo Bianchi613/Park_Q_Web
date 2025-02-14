@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Importe o useNavigate
+import Header from "../Layout/Header"; // Importe o Header
 import './TariffPlan.css';
 
 const TariffPlan = () => {
@@ -96,7 +97,8 @@ const TariffPlan = () => {
 
   return (
     <div className="flex">
-      {/* Sidebar à esquerda */}
+      {/* Incluindo o Header */}
+      <Header /> 
 
       {/* Conteúdo principal à direita */}
       <div className="p-6 bg-gray-50 min-h-screen flex-1">

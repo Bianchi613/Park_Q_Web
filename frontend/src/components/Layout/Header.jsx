@@ -24,7 +24,7 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-content">
-        <h1>ParkQ </h1>
+        <h1>Park Q </h1>
         <div className="header-buttons">
           <button className="profile-button" onClick={handleProfile}>
             Perfil

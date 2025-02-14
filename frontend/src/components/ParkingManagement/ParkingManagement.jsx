@@ -1,7 +1,6 @@
-/* eslint-disable no-unused-vars */
-import React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Importe o useNavigate
+import Header from "../Layout/Header"; // Importe o Header
 import "./ParkingManagement.css";
 
 const ParkingManagement = () => {
@@ -124,6 +123,9 @@ const ParkingManagement = () => {
 
   return (
     <div className="parking-management">
+      {/* Incluindo o Header */}
+      <Header /> {/* O Header vai aparecer acima de todo o conteúdo */}
+
       {/* Botão para voltar ao Admin Dashboard */}
       <button
         className="back-button"

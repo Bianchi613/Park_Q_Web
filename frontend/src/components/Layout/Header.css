@@ -1,47 +1,92 @@
-.home-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100vw; /* Agora ocupa toda a largura */
-  background-color: #faf5ff;
-  padding: 30px; /* Evita que os elementos fiquem muito compactados */
+:root {
+  --color-primary: #fefefe; /* Cor principal do header */
+  --color-secondary: #fefefe; /* Cor do fundo secundário */
+  --color-button-bg: #6b6969; /* Cor de fundo dos botões */
+  --color-button-text: #fff; /* Cor do texto dos botões */
+  --color-hover-bg: #555; /* Cor de fundo ao passar o mouse */
+  --shadow: 0 4px 10px rgba(114, 114, 114, 0.1); /* Sombra suave */
 }
 
-h2 {
-  font-size: 1.2rem;
-  color: #000000;
-  margin-bottom: 10px;
+.header {
+  width: 100%;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  box-shadow: var(--shadow);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 h1 {
-  font-size: 4rem; /* Maior para parecer mais profissional */
+  font-size: 2.5rem;
   font-weight: bold;
-  color: rgb(11, 11, 11);
-}
-
-.buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 30px;
-  width: 100%; /* Garantir que a área dos botões ocupe toda a largura do contêiner */
-}
-
-.btn {
-  background-color: rgb(91, 87, 87);
-  color: white;
-  padding: 20px 40px; /* Aumentando o padding para botões maiores */
-  border: none;
+  color: var(--color-secondary);
+  margin: 0;
   cursor: pointer;
-  font-size: 1.6rem; /* Aumentando o tamanho da fonte */
-  border-radius: 8px;
-  width: 100%; /* O botão ocupará toda a largura do seu contêiner */
-  max-width: 300px; /* Limita a largura dos botões a 300px */
-  text-align: center;
+  text-transform: uppercase; /* Deixa o nome em maiúsculas */
+  letter-spacing: 2px; /* Adiciona um espaçamento entre as letras */
 }
 
-.btn:hover {
-  opacity: 0.8;
+.header-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+button {
+  background-color: var(--color-button-bg);
+  color: var(--color-button-text);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--color-hover-bg);
+  transform: scale(1.05); /* Efeito de zoom suave */
+}
+
+button:focus {
+  outline: none;
+}
+
+button.profile-button {
+  background-color: #282828; /* Cor específica para o botão de perfil */
+}
+
+button.logout-button {
+  background-color: #e7796d; /* Cor específica para o botão de logout */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .header {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .header-buttons {
+    gap: 10px;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+  }
 }
