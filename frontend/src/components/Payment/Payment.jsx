@@ -7,7 +7,12 @@ const Payment = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { id_vaga, valor, id_usuario } = location.state || {}; // Pegando os dados da vaga
+
+  // Pegando os dados da reserva e plano de tarifação
+  const { id_vaga, valor, id_usuario, plano_id } = location.state || {};
+
+  // Exibindo os dados da reserva e plano
+  const planoDescricao = location.state?.plano_descricao || 'Plano não selecionado';
 
   const handlePaymentChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -26,11 +31,12 @@ const Payment = () => {
       const dataFim = null; // Data de fim (pode ser nula ou uma data futura)
 
       const reservaResponse = await axios.post('http://localhost:3000/reservas', {
-        id_vaga: id_vaga,     // ID da vaga
-        id_usuario: id_usuario,   // ID do usuário
-        valor: valor,         // Valor da vaga
+        id_vaga: id_vaga,    // ID da vaga
+        id_usuario: id_usuario,  // ID do usuário recuperado do localStorage
+        valor: valor,        // Valor da vaga
         dataReserva: dataReserva, // Data e hora da reserva
-        dataFim: dataFim       // Data de fim (pode ser nulo)
+        dataFim: dataFim,   // Data de fim (pode ser nulo)
+        plano_id: plano_id  // ID do plano de tarifação
       });
 
       const reservaId = reservaResponse.data.id; // ID da reserva criada
@@ -81,6 +87,14 @@ const Payment = () => {
   return (
     <div className="payment-container">
       <h2>Escolha a forma de Pagamento:</h2>
+      
+      {/* Exibindo informações da reserva */}
+      <div className="reservation-details">
+        <p><strong>Vaga ID:</strong> {id_vaga}</p>
+        <p><strong>Valor da Reserva:</strong> R$ {valor}</p>
+        <p><strong>Plano Selecionado:</strong> {planoDescricao}</p>
+      </div>
+
       <div className="payment-methods">
         <label className="payment-option">
           <input
@@ -89,7 +103,7 @@ const Payment = () => {
             checked={paymentMethod === 'PIX'}
             onChange={handlePaymentChange}
           />
-          <right>Pagamento por PIX</right>
+          <span>Pagamento por PIX</span>
         </label>
         <label className="payment-option">
           <input
@@ -110,6 +124,7 @@ const Payment = () => {
           Boleto Bancário
         </label>
       </div>
+      
       <div className="buttons">
         <button onClick={handleConfirm} className="confirm-button">Confirmar Pagamento</button>
         <button onClick={handleBack} className="back-button">Cancelar e Voltar</button>

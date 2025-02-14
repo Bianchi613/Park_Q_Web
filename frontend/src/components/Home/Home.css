@@ -1,46 +1,51 @@
 /* Estilos Gerais */
 .home-container {
-  display: block;
+  display: flex;
   justify-content: center;
-  background-color: var(--color-primary);
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #ffffff, #ffffff);
-  color: white;
+  background-color: var(--color-primary);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
+  color: #333;
   font-family: "Arial", sans-serif;
   text-align: center;
   padding: 20px;
+  min-height: 100vh;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%); /* Centraliza o contêiner */
-  
 }
 
+/* Conteúdo principal */
 .home-content {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.8);
   padding: 40px;
   border-radius: 15px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   max-width: 500px;
-  align-items: center;
   width: 100%;
+  animation: fadeIn 1s ease-in-out;
 }
 
+/* Título */
 .home-title {
   font-size: 3.5rem;
   font-weight: bold;
   margin-bottom: 10px;
+  color: #333;
   animation: fadeIn 1s ease-in-out;
 }
 
+/* Subtítulo */
 .home-subtitle {
   font-size: 1.5rem;
   margin-bottom: 30px;
+  color: #555;
   animation: fadeIn 1.5s ease-in-out;
 }
 
+/* Botões */
 .buttons {
   display: flex;
   justify-content: center;
@@ -48,6 +53,7 @@
   animation: slideUp 1s ease-in-out;
 }
 
+/* Estilos gerais para botões */
 .btn {
   padding: 12px 24px;
   border: none;
@@ -57,8 +63,10 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
+/* Botão primário */
 .btn-primary {
   background-color: #0b0b0b;
   color: white;
@@ -68,8 +76,10 @@
   background-color: #616161;
   transform: translateY(-3px);
   box-shadow: 0 4px 15px rgba(83, 83, 83, 0.4);
+  opacity: 0.9;
 }
 
+/* Botão secundário */
 .btn-secondary {
   background-color: transparent;
   border: 2px solid #bfbfbf;
@@ -81,6 +91,7 @@
   color: white;
   transform: translateY(-3px);
   box-shadow: 0 4px 15px rgba(56, 56, 56, 0.4);
+  opacity: 0.9;
 }
 
 /* Animações */
@@ -103,5 +114,30 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .home-title {
+    font-size: 2.5rem;
+  }
+
+  .home-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .home-content {
+    padding: 20px;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 14px;
   }
 }

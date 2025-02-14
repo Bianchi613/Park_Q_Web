@@ -36,6 +36,44 @@ h2 {
   height: 100%;
 }
 
+/* Exibindo planos de tarifação */
+.planos-tarifacao {
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.planos-tarifacao h3 {
+  font-size: 18px;
+  color: #333333;
+  margin-bottom: 10px;
+}
+
+.planos-tarifacao select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #cccccc;
+  background-color: #ffffff;
+  margin-bottom: 20px;
+  color: #555555;
+  transition: border 0.3s ease;
+}
+
+.planos-tarifacao select:focus {
+  border: 1px solid #28a745; /* Cor do plano de tarifação selecionado */
+  outline: none;
+}
+
+.planos-tarifacao option {
+  padding: 10px;
+}
+
 /* Carrossel de vagas */
 .vaga-carousel {
   width: 100%;
@@ -90,16 +128,15 @@ h2 {
   font-style: italic;
   color: #555555;
 }
-
 /* Botões */
 .confirm-button {
-  padding: 10px 20px;
+  padding: 8px 16px; /* Reduzindo o padding */
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 6px; /* Menos arredondado */
+  font-size: 14px; /* Reduzindo o tamanho da fonte */
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 10px;
+  margin-top: 8px; /* Ajuste no espaçamento */
 }
 
 .confirm-button.disponivel {
@@ -119,24 +156,17 @@ h2 {
 
 /* Botão de voltar */
 .back-button {
-  margin-top: 20px;
-  padding: 10px 20px;
+  margin-top: 16px; /* Ajuste no espaçamento */
+  padding: 8px 16px; /* Reduzindo o padding */
   background-color: #333333; /* Botão preto */
   color: #ffffff;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 6px; /* Menos arredondado */
+  font-size: 14px; /* Reduzindo o tamanho da fonte */
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .back-button:hover {
   background-color: #555555; /* Cinza mais claro ao passar o mouse */
-}
-
-/* Mensagem de nenhuma vaga */
-.no-vagas {
-  text-align: center;
-  font-size: 16px;
-  color: #666666;
 }

@@ -13,6 +13,8 @@ const Reservation = () => {
   const [vagas, setVagas] = useState([]);
   const [estacionamento, setEstacionamento] = useState(null);
   const [coordenadas, setCoordenadas] = useState([-22.9068, -43.1729]); // Coordenadas padrão (Rio de Janeiro)
+  const [planosTarifacao, setPlanosTarifacao] = useState([]); // Armazena os planos de tarifação
+  const [planoSelecionado, setPlanoSelecionado] = useState({ id: null, taxa_base: 0 }); // Armazena o plano selecionado com id e taxa
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -34,6 +36,11 @@ const Reservation = () => {
     axios.get(`http://localhost:3000/vagas?id_estacionamento=${id}`)
       .then(response => setVagas(response.data))
       .catch(error => console.error('Erro ao carregar as vagas:', error));
+
+    // Buscar planos de tarifação
+    axios.get(`http://localhost:3000/planos-tarifacao`)
+      .then(response => setPlanosTarifacao(response.data))
+      .catch(error => console.error('Erro ao carregar os planos de tarifação:', error));
   }, [id]);
 
   // Função para geocodificar o endereço
@@ -67,15 +74,18 @@ const Reservation = () => {
       return;
     }
 
-    if (vaga.status === 'disponivel') {
-      // Redireciona para a página de pagamento com os detalhes da vaga
+    if (vaga.status === 'disponivel' && planoSelecionado.id) {
+      // Redireciona para a página de pagamento com os detalhes da vaga e plano de tarifação
       navigate('/payment', { 
         state: { 
           id_vaga: vaga.id,               // ID da vaga
           id_usuario: userId,             // ID do usuário
-          valor: vaga.valor               // Valor da vaga
+          valor: planoSelecionado.taxa_base, // Valor baseado na tarifa selecionada
+          plano_id: planoSelecionado.id   // ID do plano de tarifação
         }
       });
+    } else if (!planoSelecionado.id) {
+      alert('Por favor, selecione um plano de tarifação.');
     } else {
       alert('Esta vaga não está disponível para reserva.');
     }
@@ -130,6 +140,25 @@ const Reservation = () => {
             <Popup>📍 {estacionamento ? estacionamento.nome : 'Estacionamento'}</Popup>
           </Marker>
         </MapContainer>
+      </div>
+
+      {/* Menu suspenso para selecionar um plano de tarifação */}
+      <div className="planos-tarifacao">
+        <h3>Selecione um plano de tarifação:</h3>
+        <select 
+          onChange={(e) => {
+            const selectedPlano = planosTarifacao.find(plano => plano.id === Number(e.target.value));
+            setPlanoSelecionado(selectedPlano);
+          }}
+          value={planoSelecionado.id || ''}
+        >
+          <option value="" disabled>Escolha um plano</option>
+          {planosTarifacao.map(plano => (
+            <option key={plano.id} value={plano.id}>
+              {plano.descricao} - Taxa Base: R$ {plano.taxa_base}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Carrossel de vagas */}
