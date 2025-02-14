@@ -40,6 +40,7 @@ export class ReservaController {
   })
   async createReserva(@Body() data: any) {
     try {
+      // Removendo a validação de obrigatoriedade de datas
       return await this.reservaService.createReserva(data);
     } catch (error) {
       throw new HttpException(
@@ -106,6 +107,7 @@ export class ReservaController {
   })
   async updateReserva(@Param('id') id: number, @Body() data: any) {
     try {
+      // Removendo a validação de obrigatoriedade de datas
       return await this.reservaService.updateReserva(id, data);
     } catch (error) {
       throw new HttpException(

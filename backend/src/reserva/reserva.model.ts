@@ -14,14 +14,14 @@ import { PlanoTarifacao } from '../plano-tarifacao/plano-tarifacao.model';
 export class Reserva extends Model<Reserva> {
   @Column({
     type: DataType.DATE,
-    allowNull: false,
+    allowNull: true, // Não obrigatório
     defaultValue: DataType.NOW,
   })
   data_reserva: Date;
 
   @Column({
     type: DataType.DATE,
-    allowNull: true,
+    allowNull: true, // Não obrigatório
   })
   data_fim: Date;
 
