@@ -6,11 +6,16 @@ import { EstacionamentoRepository } from './estacionamento.repository';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Estacionamento } from './estacionamento.model';
 import { Vaga } from '../vaga/vaga.model';
+import { GeocodingService } from './geocoding.service';
 
 @Module({
   imports: [SequelizeModule.forFeature([Estacionamento, Vaga])],
   controllers: [EstacionamentoController],
-  providers: [EstacionamentoService, EstacionamentoRepository],
+  providers: [
+    EstacionamentoService,
+    EstacionamentoRepository,
+    GeocodingService,
+  ],
   exports: [EstacionamentoService],
 })
 export class EstacionamentoModule {}

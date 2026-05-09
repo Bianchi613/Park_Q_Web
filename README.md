@@ -109,9 +109,13 @@ DATABASE_PASSWORD=12345
 DATABASE_NAME=parkq
 NODE_ENV=development
 JWT_SECRET=sua_chave_secreta
+GEOCODING_PROVIDER=nominatim
+GEOCODING_USER_AGENT=park-q-web/1.0
+GEOCODING_TIMEOUT_MS=5000
 ```
 
 Os valores acima seguem os padroes usados no codigo, mas podem ser alterados conforme o ambiente local.
+Com `GEOCODING_PROVIDER=nominatim`, ao cadastrar/editar um estacionamento com `localizacao` e sem coordenadas, o backend tenta preencher `latitude` e `longitude` automaticamente. Se quiser informar as coordenadas manualmente ou desligar a busca externa, use `GEOCODING_PROVIDER=disabled`.
 
 ## Como executar
 
@@ -174,7 +178,7 @@ O backend usa `id` como identificador unico das entidades. Na documentacao conce
 | Entidade | Principais atributos | Regras/metodos no backend |
 | --- | --- | --- |
 | `Usuario` | `CPF`, `nome`, `email`, `telefone`, `login`, `senha`, `role`, `preferencias`, `cargo`, `privilegios`, `id_estacionamento` | Usuarios com `role = CLIENT` reservam/cancelam vagas e consultam historico. Usuarios com `role = ADMIN` gerenciam vagas e relatorios. |
-| `Estacionamento` | `nome`, `localizacao`, `latitude`, `longitude`, `capacidade`, `vagas_disponiveis`, `categoria`, `imagemUrl` | `EstacionamentoService` monitora vagas e gera relatorios. A distancia ate o usuario pode ser calculada no frontend usando latitude/longitude. |
+| `Estacionamento` | `nome`, `localizacao`, `latitude`, `longitude`, `capacidade`, `vagas_disponiveis`, `categoria`, `imagemUrl` | `EstacionamentoService` monitora vagas, gera relatorios, preenche coordenadas por geocoding quando possivel e calcula distancia por latitude/longitude. |
 | `Vaga` | `numero`, `status`, `tipo`, `reservada`, `id_estacionamento`, `id_reserva` | `VagaService` reserva e libera vagas. |
 | `PlanoTarifacao` | `descricao`, `data_vigencia`, `taxa_base`, `taxa_hora`, `taxa_diaria` | `PlanoTarifacaoService` calcula tarifas. |
 | `Reserva` | `data_reserva`, `data_fim`, `valor`, `status`, `id_usuario`, `id_vaga`, `id_plano` | `ReservaService` cria, atualiza, cancela e consulta reservas. Status: `ATIVA`, `CANCELADA`, `FINALIZADA`, `EXPIRADA`. |
@@ -230,6 +234,7 @@ Estacionamentos:
 | --- | --- | --- |
 | `POST` | `/estacionamentos` | Cria estacionamento |
 | `GET` | `/estacionamentos` | Lista estacionamentos |
+| `GET` | `/estacionamentos/proximos?lat=-23.55&lng=-46.63` | Lista estacionamentos ordenados por distancia |
 | `GET` | `/estacionamentos/:id` | Busca estacionamento por ID |
 | `PUT` | `/estacionamentos/:id` | Atualiza estacionamento |
 | `DELETE` | `/estacionamentos/:id` | Remove estacionamento |

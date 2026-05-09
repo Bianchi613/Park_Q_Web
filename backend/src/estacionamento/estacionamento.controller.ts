@@ -4,14 +4,17 @@ import {
   Delete,
   Get,
   Param,
+  ParseFloatPipe,
   ParseIntPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -46,6 +49,27 @@ export class EstacionamentoController {
   @ApiOperation({ summary: 'Lista todos os estacionamentos' })
   async findAll() {
     return this.estacionamentoService.findAll();
+  }
+
+  @Get('proximos')
+  @ApiOperation({
+    summary: 'Lista estacionamentos proximos de uma coordenada',
+  })
+  @ApiQuery({
+    name: 'lat',
+    example: -23.55052,
+    description: 'Latitude atual do usuario',
+  })
+  @ApiQuery({
+    name: 'lng',
+    example: -46.633308,
+    description: 'Longitude atual do usuario',
+  })
+  async findNearby(
+    @Query('lat', ParseFloatPipe) latitude: number,
+    @Query('lng', ParseFloatPipe) longitude: number,
+  ) {
+    return this.estacionamentoService.findNearby(latitude, longitude);
   }
 
   @Get(':id')
