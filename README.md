@@ -111,6 +111,9 @@ TEST_USER_PASSWORD=12345
 GEOCODING_PROVIDER=nominatim
 GEOCODING_USER_AGENT=park-q-web/1.0
 GEOCODING_TIMEOUT_MS=5000
+
+RESERVA_MONITOR_ENABLED=true
+RESERVA_MONITOR_INTERVAL_MS=60000
 ```
 
 Com `GEOCODING_PROVIDER=nominatim`, ao cadastrar ou editar um estacionamento com `localizacao` e sem coordenadas, o backend tenta preencher `latitude` e `longitude` automaticamente. Para desligar isso, use `GEOCODING_PROVIDER=disabled`.
@@ -214,6 +217,8 @@ No codigo NestJS, os metodos de negocio ficam nos `Services`. Os `Models` repres
 - Rotas sensiveis foram protegidas com JWT e `role` (`ADMIN` ou `CLIENT`).
 - Clientes autenticados so podem acessar seus proprios usuarios, reservas, pagamentos e notificacoes; administradores possuem acesso de gestao.
 - Controllers usam DTOs com `class-validator` e `ValidationPipe` global para validar payloads, converter tipos e bloquear campos desconhecidos.
+- `ReservaMonitorService` monitora reservas automaticamente em intervalo configuravel, notificando reservas perto do fim e expirando reservas vencidas.
+- Migrations Sequelize foram adicionadas para criar/atualizar o schema atual e o trigger de vagas disponiveis.
 
 ## Principais endpoints da API
 
@@ -340,6 +345,18 @@ Arquivos relacionados:
 
 Em desenvolvimento, `synchronize` fica ativo quando `NODE_ENV` nao e `production`, entao o Sequelize pode criar/ajustar tabelas automaticamente. O arquivo `parkq.sql` serve como referencia/manual do schema.
 
+Para rodar migrations:
+
+```bash
+cd backend
+npm run db:migrate
+```
+
+O monitor automatico de reservas usa:
+
+- `RESERVA_MONITOR_ENABLED`: habilita/desabilita o job.
+- `RESERVA_MONITOR_INTERVAL_MS`: intervalo de execucao em milissegundos.
+
 ## Scripts uteis
 
 Raiz:
@@ -352,6 +369,8 @@ Backend:
 
 ```bash
 npm run db:create
+npm run db:migrate
+npm run db:migrate:undo
 npm run start
 npm run start:dev
 npm run build

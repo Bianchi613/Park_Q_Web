@@ -32,6 +32,9 @@ JWT_EXPIRES_IN=1d
 GEOCODING_PROVIDER=nominatim
 GEOCODING_USER_AGENT=park-q-web/1.0
 GEOCODING_TIMEOUT_MS=5000
+
+RESERVA_MONITOR_ENABLED=true
+RESERVA_MONITOR_INTERVAL_MS=60000
 ```
 
 ## Execucao
@@ -96,3 +99,20 @@ npm run test:e2e
 O schema de referencia fica em `backend/parkq.sql`. Em desenvolvimento, o Sequelize usa `synchronize` quando `NODE_ENV` nao e `production`.
 
 Para producao, use migrations e mantenha `NODE_ENV=production`.
+
+Comandos:
+
+```bash
+npm run db:migrate
+npm run db:migrate:undo
+npm run db:migrate:undo:all
+```
+
+## Monitoramento automatico
+
+`ReservaMonitorService` executa periodicamente `ReservaService.monitorarReservas()`. Ele envia notificacoes de reservas perto do fim, marca reservas vencidas como `EXPIRADA` e libera a vaga relacionada.
+
+Configuracao:
+
+- `RESERVA_MONITOR_ENABLED=true`
+- `RESERVA_MONITOR_INTERVAL_MS=60000`

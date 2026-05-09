@@ -8,6 +8,9 @@
   "scripts": {
     "build": "nest build",
     "db:create": "node scripts/ensure-database.js",
+    "db:migrate": "npm run db:create && sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "npm run db:create && nest start",
     "start:dev": "npm run db:create && nest start --watch",
