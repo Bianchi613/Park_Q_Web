@@ -1,9 +1,9 @@
-import { Column, DataType, Model, Table, HasMany } from 'sequelize-typescript';
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 import { Usuario } from '../usuario/usuario.model';
 import { Vaga } from '../vaga/vaga.model';
 
 @Table({
-  timestamps: true,  // Habilita a criação automática das colunas createdAt e updatedAt
+  timestamps: true,
 })
 export class Estacionamento extends Model<Estacionamento> {
   @Column({
@@ -19,6 +19,18 @@ export class Estacionamento extends Model<Estacionamento> {
   localizacao: string;
 
   @Column({
+    type: DataType.DECIMAL(10, 7),
+    allowNull: true,
+  })
+  latitude: number;
+
+  @Column({
+    type: DataType.DECIMAL(10, 7),
+    allowNull: true,
+  })
+  longitude: number;
+
+  @Column({
     type: DataType.INTEGER,
     allowNull: false,
   })
@@ -29,6 +41,18 @@ export class Estacionamento extends Model<Estacionamento> {
     allowNull: false,
   })
   vagas_disponiveis: number;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: true,
+  })
+  categoria: string;
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: true,
+  })
+  imagemUrl: string;
 
   @HasMany(() => Usuario)
   usuarios: Usuario[];

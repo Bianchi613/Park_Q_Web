@@ -1,125 +1,72 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Param,
   Body,
-  Put,
+  Controller,
   Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
 } from '@nestjs/common';
-import { OperacaoService } from './operacao.service';
-import { Operacao } from './operacao.model';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBody,
+  ApiOperation,
   ApiParam,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
+import { Operacao } from './operacao.model';
+import { OperacaoService } from './operacao.service';
 
-@ApiTags('Operações') // Define a categoria no Swagger
+@ApiTags('Operacoes')
 @Controller('operacoes')
 export class OperacaoController {
   constructor(private readonly operacaoService: OperacaoService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Cria uma nova operação' })
-  @ApiResponse({ status: 201, description: 'Operação criada com sucesso.' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos.' })
+  @ApiOperation({ summary: 'Cria uma nova operacao' })
+  @ApiResponse({ status: 201, description: 'Operacao criada com sucesso.' })
   @ApiBody({
     schema: {
       example: {
-        descricao: 'Operação de entrada',
+        descricao: 'Operacao de entrada',
         data_hora: '2024-12-15T10:00:00Z',
         id_usuario: 1,
       },
     },
   })
-  async create(
-    @Body('descricao') descricao: string,
-    @Body('data_hora') data_hora: Date,
-    @Body('id_usuario') id_usuario: number,
-  ): Promise<Operacao> {
-    try {
-      return await this.operacaoService.create(
-        descricao,
-        data_hora,
-        id_usuario,
-      );
-    } catch (error) {
-      throw new Error(`Erro ao criar operação: ${error.message}`);
-    }
+  async create(@Body() data: Partial<Operacao>): Promise<Operacao> {
+    return this.operacaoService.create(data);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retorna todas as operações' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de operações retornada com sucesso.',
-  })
+  @ApiOperation({ summary: 'Retorna todas as operacoes' })
   async findAll(): Promise<Operacao[]> {
-    try {
-      return await this.operacaoService.findAll();
-    } catch (error) {
-      throw new Error(`Erro ao recuperar as operações: ${error.message}`);
-    }
+    return this.operacaoService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Retorna uma operação pelo ID' })
-  @ApiParam({ name: 'id', description: 'ID da operação' })
-  @ApiResponse({ status: 200, description: 'Operação encontrada.' })
-  @ApiResponse({ status: 404, description: 'Operação não encontrada.' })
-  async findOne(@Param('id') id: number): Promise<Operacao> {
-    try {
-      return await this.operacaoService.findOne(id);
-    } catch (error) {
-      throw new Error(`Erro ao recuperar operação: ${error.message}`);
-    }
+  @ApiOperation({ summary: 'Retorna uma operacao pelo ID' })
+  @ApiParam({ name: 'id', description: 'ID da operacao' })
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Operacao> {
+    return this.operacaoService.findOne(id);
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Atualiza os dados de uma operação' })
-  @ApiParam({ name: 'id', description: 'ID da operação' })
-  @ApiResponse({ status: 200, description: 'Operação atualizada com sucesso.' })
-  @ApiResponse({ status: 404, description: 'Operação não encontrada.' })
-  @ApiBody({
-    schema: {
-      example: {
-        descricao: 'Operação de saída',
-        data_hora: '2024-12-15T12:00:00Z',
-        id_usuario: 2,
-      },
-    },
-  })
+  @ApiOperation({ summary: 'Atualiza os dados de uma operacao' })
+  @ApiParam({ name: 'id', description: 'ID da operacao' })
   async update(
-    @Param('id') id: number,
-    @Body('descricao') descricao: string,
-    @Body('data_hora') data_hora: Date,
-    @Body('id_usuario') id_usuario: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: Partial<Operacao>,
   ): Promise<Operacao> {
-    try {
-      return await this.operacaoService.update(
-        id,
-        descricao,
-        data_hora,
-        id_usuario,
-      );
-    } catch (error) {
-      throw new Error(`Erro ao atualizar operação: ${error.message}`);
-    }
+    return this.operacaoService.update(id, data);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Exclui uma operação pelo ID' })
-  @ApiParam({ name: 'id', description: 'ID da operação' })
-  @ApiResponse({ status: 204, description: 'Operação excluída com sucesso.' })
-  @ApiResponse({ status: 404, description: 'Operação não encontrada.' })
-  async remove(@Param('id') id: number): Promise<void> {
-    try {
-      await this.operacaoService.remove(id);
-    } catch (error) {
-      throw new Error(`Erro ao deletar operação: ${error.message}`);
-    }
+  @ApiOperation({ summary: 'Exclui uma operacao pelo ID' })
+  @ApiParam({ name: 'id', description: 'ID da operacao' })
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.operacaoService.remove(id);
+    return { message: 'Operacao removida com sucesso.' };
   }
 }

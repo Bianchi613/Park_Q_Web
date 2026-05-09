@@ -1,23 +1,24 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Put,
-  Delete,
-  Body,
-  Param,
 } from '@nestjs/common';
-import { PagamentoService } from './pagamento.service';
-import { Pagamento } from './pagamento.model';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBody,
+  ApiOperation,
   ApiParam,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
+import { Pagamento } from './pagamento.model';
+import { PagamentoService } from './pagamento.service';
 
-@ApiTags('Pagamentos') // Define a categoria no Swagger
+@ApiTags('Pagamentos')
 @Controller('pagamentos')
 export class PagamentoController {
   constructor(private readonly pagamentoService: PagamentoService) {}
@@ -25,7 +26,6 @@ export class PagamentoController {
   @Post()
   @ApiOperation({ summary: 'Cria um novo pagamento' })
   @ApiResponse({ status: 201, description: 'Pagamento criado com sucesso.' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos.' })
   @ApiBody({
     schema: {
       example: {
@@ -37,79 +37,37 @@ export class PagamentoController {
     },
   })
   async create(@Body() data: Partial<Pagamento>): Promise<Pagamento> {
-    try {
-      return await this.pagamentoService.createPagamento(data);
-    } catch (error) {
-      throw new Error('Error creating Pagamento: ' + error.message);
-    }
+    return this.pagamentoService.createPagamento(data);
   }
 
   @Get()
   @ApiOperation({ summary: 'Retorna todos os pagamentos' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de pagamentos retornada com sucesso.',
-  })
   async findAll(): Promise<Pagamento[]> {
-    try {
-      return await this.pagamentoService.getAllPagamentos();
-    } catch (error) {
-      throw new Error('Error retrieving Pagamentos: ' + error.message);
-    }
+    return this.pagamentoService.getAllPagamentos();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Retorna um pagamento pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do pagamento' })
-  @ApiResponse({ status: 200, description: 'Pagamento encontrado.' })
-  @ApiResponse({ status: 404, description: 'Pagamento não encontrado.' })
-  async findById(@Param('id') id: number): Promise<Pagamento> {
-    try {
-      return await this.pagamentoService.getPagamentoById(id);
-    } catch (error) {
-      throw new Error('Error retrieving Pagamento by ID: ' + error.message);
-    }
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<Pagamento> {
+    return this.pagamentoService.getPagamentoById(id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Atualiza os dados de um pagamento' })
   @ApiParam({ name: 'id', description: 'ID do pagamento' })
-  @ApiResponse({
-    status: 200,
-    description: 'Pagamento atualizado com sucesso.',
-  })
-  @ApiResponse({ status: 404, description: 'Pagamento não encontrado.' })
-  @ApiBody({
-    schema: {
-      example: {
-        id_reserva: 1,
-        metodo_pagamento: 'Cartão de Crédito',
-        valor_pago: 100.5,
-        data_hora: '2024-12-15T12:00:00Z',
-      },
-    },
-  })
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() data: Partial<Pagamento>,
   ): Promise<Pagamento> {
-    try {
-      return await this.pagamentoService.updatePagamento(id, data);
-    } catch (error) {
-      throw new Error('Error updating Pagamento: ' + error.message);
-    }
+    return this.pagamentoService.updatePagamento(id, data);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Exclui um pagamento pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do pagamento' })
-  @ApiResponse({ status: 204, description: 'Pagamento excluído com sucesso.' })
-  @ApiResponse({ status: 404, description: 'Pagamento não encontrado.' })
-  async delete(@Param('id') id: number): Promise<void> {
-    try {
-      await this.pagamentoService.deletePagamento(id);
-    } catch (error) {
-      throw new Error('Error deleting Pagamento: ' + error.message);
-    }
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.pagamentoService.deletePagamento(id);
+    return { message: 'Pagamento removido com sucesso.' };
   }
 }

@@ -1,17 +1,13 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
-import { VagaRepository } from './vaga.repository';
+import { Injectable } from '@nestjs/common';
 import { Vaga } from './vaga.model';
+import { VagaRepository } from './vaga.repository';
 
 @Injectable()
 export class VagaService {
   constructor(private readonly vagaRepository: VagaRepository) {}
 
-  async findAll(): Promise<Vaga[]> {
-    return this.vagaRepository.findAll();
+  async findAll(idEstacionamento?: number): Promise<Vaga[]> {
+    return this.vagaRepository.findAll(idEstacionamento);
   }
 
   async findOne(id: number): Promise<Vaga> {
@@ -30,8 +26,8 @@ export class VagaService {
     return this.vagaRepository.remove(id);
   }
 
-  async reservar(id: number): Promise<Vaga> {
-    return this.vagaRepository.reservar(id);
+  async reservar(id: number, idReserva?: number): Promise<Vaga> {
+    return this.vagaRepository.reservar(id, idReserva);
   }
 
   async liberar(id: number): Promise<Vaga> {

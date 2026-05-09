@@ -1,42 +1,38 @@
+import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { EstacionamentoService } from './estacionamento/estacionamento.service';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const port = Number(configService.get<string>('PORT') ?? 3000);
+  const logger = new Logger('Bootstrap');
 
-  
-
-  // Ativando CORS para permitir requisições de outros domínios
   app.enableCors();
 
-  // Configuração do Swagger
   const config = new DocumentBuilder()
-    .setTitle('API de Estacionamento') // Título da documentação Swagger
+    .setTitle('API Park Q')
     .setDescription(
-      'Documentação da API para gerenciamento de estacionamentos, com autenticação e autorização JWT.',
-    ) // Descrição
-    .setVersion('1.0') // Versão da API
+      'API para gerenciamento de estacionamentos, vagas, reservas, pagamentos e autenticacao JWT.',
+    )
+    .setVersion('1.0')
     .addBearerAuth({
       type: 'http',
       scheme: 'bearer',
       bearerFormat: 'JWT',
-      description: 'Insira o token JWT para acessar as rotas protegidas',
-    }) // Suporte para autenticação Bearer
+      description: 'Informe o token JWT no formato Bearer.',
+    })
     .build();
 
-  // Criação do documento Swagger
   const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
-  // Configuração da rota da documentação (http://localhost:3000/api/docs)
-  SwaggerModule.setup('api/docs', app, document); // 🔥 Corrigida a URL para /api/docs
+  await app.listen(port);
 
-  await app.listen(3000, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:3000/`);
-    console.log(
-      `📚 Documentação do Swagger disponível em http://localhost:3000/api/docs`,
-    );
-  });
+  logger.log(`Servidor rodando em http://localhost:${port}/`);
+  logger.log(`Swagger disponivel em http://localhost:${port}/api/docs`);
 }
+
 bootstrap();

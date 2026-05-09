@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { VagaService } from './vaga.service';
+import { Estacionamento } from '../estacionamento/estacionamento.model';
 import { VagaController } from './vaga.controller';
 import { Vaga } from './vaga.model';
-import { VagaRepository } from './vaga.repository'; // Certifique-se de importar o repositório
+import { VagaRepository } from './vaga.repository';
+import { VagaService } from './vaga.service';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Vaga])], // Certifique-se de que o modelo Vaga está registrado
+  imports: [SequelizeModule.forFeature([Vaga, Estacionamento])],
   controllers: [VagaController],
-  providers: [VagaService, VagaRepository], // Certifique-se de registrar o VagaRepository
-  exports: [VagaService, VagaRepository], // Exporte VagaService e VagaRepository
+  providers: [VagaService, VagaRepository],
+  exports: [VagaService, VagaRepository],
 })
 export class VagaModule {}

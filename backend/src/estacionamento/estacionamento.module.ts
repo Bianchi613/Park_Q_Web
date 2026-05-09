@@ -11,5 +11,6 @@ import { Vaga } from '../vaga/vaga.model';
   imports: [SequelizeModule.forFeature([Estacionamento, Vaga])],
   controllers: [EstacionamentoController],
   providers: [EstacionamentoService, EstacionamentoRepository],
+  exports: [EstacionamentoService],
 })
 export class EstacionamentoModule {}

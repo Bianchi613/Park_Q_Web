@@ -1,13 +1,11 @@
 'use strict';
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface) {
     await queryInterface.sequelize.query(`
-      -- Remove o trigger antes de criar
       DROP TRIGGER IF EXISTS trg_atualizar_vagas_disponiveis ON Vaga;
 
-      -- Cria ou atualiza a função
-      CREATE OR REPLACE FUNCTION atualizar_vagas_disponiveis() 
+      CREATE OR REPLACE FUNCTION atualizar_vagas_disponiveis()
       RETURNS TRIGGER AS
       $$
       BEGIN
@@ -23,7 +21,6 @@ module.exports = {
       $$
       LANGUAGE plpgsql;
 
-      -- Cria o trigger novamente
       CREATE TRIGGER trg_atualizar_vagas_disponiveis
       AFTER UPDATE ON Vaga
       FOR EACH ROW
@@ -31,9 +28,8 @@ module.exports = {
     `);
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.sequelize.query(`
-      -- Remove o trigger e a função no rollback
       DROP TRIGGER IF EXISTS trg_atualizar_vagas_disponiveis ON Vaga;
       DROP FUNCTION IF EXISTS atualizar_vagas_disponiveis;
     `);

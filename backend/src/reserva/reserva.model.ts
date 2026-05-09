@@ -1,27 +1,27 @@
 import {
+  BelongsTo,
   Column,
   DataType,
+  ForeignKey,
   Model,
   Table,
-  ForeignKey,
-  BelongsTo,
 } from 'sequelize-typescript';
+import { PlanoTarifacao } from '../plano-tarifacao/plano-tarifacao.model';
 import { Usuario } from '../usuario/usuario.model';
 import { Vaga } from '../vaga/vaga.model';
-import { PlanoTarifacao } from '../plano-tarifacao/plano-tarifacao.model';
 
 @Table
 export class Reserva extends Model<Reserva> {
   @Column({
     type: DataType.DATE,
-    allowNull: true, // Não obrigatório
+    allowNull: true,
     defaultValue: DataType.NOW,
   })
   data_reserva: Date;
 
   @Column({
     type: DataType.DATE,
-    allowNull: true, // Não obrigatório
+    allowNull: true,
   })
   data_fim: Date;
 
@@ -30,6 +30,13 @@ export class Reserva extends Model<Reserva> {
     allowNull: false,
   })
   valor: number;
+
+  @Column({
+    type: DataType.ENUM('ATIVA', 'CANCELADA', 'FINALIZADA', 'EXPIRADA'),
+    allowNull: false,
+    defaultValue: 'ATIVA',
+  })
+  status: string;
 
   @ForeignKey(() => Usuario)
   @Column({ type: DataType.INTEGER, allowNull: false })

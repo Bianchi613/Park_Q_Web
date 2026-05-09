@@ -1,29 +1,40 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+const requiredEnv = (name) => {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  return value;
+};
 
 module.exports = {
   development: {
-    username: process.env.DATABASE_USER || 'postgres',
-    password: process.env.DATABASE_PASSWORD || '12345',
-    database: process.env.DATABASE_NAME || 'parkq',
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: process.env.DATABASE_PORT || 5432,
+    username: requiredEnv('DATABASE_USER'),
+    password: requiredEnv('DATABASE_PASSWORD'),
+    database: requiredEnv('DATABASE_NAME'),
+    host: requiredEnv('DATABASE_HOST'),
+    port: Number(requiredEnv('DATABASE_PORT')),
     dialect: 'postgres',
   },
   test: {
-    username: process.env.DATABASE_USER || 'postgres',
-    password: process.env.DATABASE_PASSWORD || '12345',
-    database: (process.env.DATABASE_NAME || 'parkq') + '_test',
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: process.env.DATABASE_PORT || 5432,
+    username: requiredEnv('DATABASE_USER'),
+    password: requiredEnv('DATABASE_PASSWORD'),
+    database: `${requiredEnv('DATABASE_NAME')}_test`,
+    host: requiredEnv('DATABASE_HOST'),
+    port: Number(requiredEnv('DATABASE_PORT')),
     dialect: 'postgres',
   },
   production: {
-    username: process.env.DATABASE_USER || 'postgres',
-    password: process.env.DATABASE_PASSWORD || '12345',
-    database: (process.env.DATABASE_NAME || 'parkq') + '_production',
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: process.env.DATABASE_PORT || 5432,
+    username: requiredEnv('DATABASE_USER'),
+    password: requiredEnv('DATABASE_PASSWORD'),
+    database: `${requiredEnv('DATABASE_NAME')}_production`,
+    host: requiredEnv('DATABASE_HOST'),
+    port: Number(requiredEnv('DATABASE_PORT')),
     dialect: 'postgres',
-    logging: false, // Desativa os logs de SQL no ambiente de produção
+    logging: false,
   },
 };

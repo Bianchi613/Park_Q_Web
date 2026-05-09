@@ -6,35 +6,35 @@ import { PlanoTarifacao } from './plano-tarifacao.model';
 export class PlanoTarifacaoRepository {
   constructor(
     @InjectModel(PlanoTarifacao)
-    private planoTarifacaoModel: typeof PlanoTarifacao,
+    private readonly planoTarifacaoModel: typeof PlanoTarifacao,
   ) {}
 
   async findAll(): Promise<PlanoTarifacao[]> {
-    return this.planoTarifacaoModel.findAll();
+    return this.planoTarifacaoModel.findAll({ order: [['id', 'ASC']] });
   }
 
   async findOne(id: number): Promise<PlanoTarifacao> {
     const plano = await this.planoTarifacaoModel.findByPk(id);
+
     if (!plano) {
       throw new NotFoundException(
-        `Plano de tarifação com ID ${id} não encontrado.`,
+        `Plano de tarifacao com ID ${id} nao encontrado.`,
       );
     }
+
     return plano;
   }
 
-  async create(
-    planoTarifacaoData: Partial<PlanoTarifacao>,
-  ): Promise<PlanoTarifacao> {
-    return this.planoTarifacaoModel.create(planoTarifacaoData);
+  async create(data: Partial<PlanoTarifacao>): Promise<PlanoTarifacao> {
+    return this.planoTarifacaoModel.create(data);
   }
 
   async update(
     id: number,
-    planoTarifacaoData: Partial<PlanoTarifacao>,
+    data: Partial<PlanoTarifacao>,
   ): Promise<PlanoTarifacao> {
     const plano = await this.findOne(id);
-    await plano.update(planoTarifacaoData);
+    await plano.update(data);
     return plano;
   }
 
@@ -49,14 +49,18 @@ export class PlanoTarifacaoRepository {
     planoId: number,
   ): Promise<number> {
     const plano = await this.findOne(planoId);
-    let tarifa = plano.taxa_base;
+    const taxaBase = Number(plano.taxa_base ?? 0);
+    const taxaHora = Number(plano.taxa_hora ?? 0);
+    const taxaDiaria = Number(plano.taxa_diaria ?? 0);
 
     if (tipoVaga === 'moto') {
-      tarifa += plano.taxa_hora ? plano.taxa_hora * duracao : 0;
-    } else if (tipoVaga === 'carro') {
-      tarifa += plano.taxa_diaria ? plano.taxa_diaria : 0;
+      return taxaBase + taxaHora * duracao;
     }
 
-    return tarifa;
+    if (tipoVaga === 'carro') {
+      return taxaBase + taxaDiaria;
+    }
+
+    return taxaBase;
   }
 }

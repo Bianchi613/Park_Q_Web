@@ -1,7 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsuarioService } from '../usuario/usuario.service';
 import * as bcrypt from 'bcrypt';
+import { UsuarioService } from '../usuario/usuario.service';
+
+type AuthenticatedUser = {
+  id: number;
+  email: string;
+  role: string;
+  id_estacionamento?: number;
+};
 
 @Injectable()
 export class AuthService {
@@ -10,46 +17,39 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // Função de validação de usuário (com a senha e role)
-  async validateUser(email: string, senha: string): Promise<{ id: number; email: string; role: string } | null> {
-    console.log(`🔍 Buscando usuário com email: ${email}`);
+  async validateUser(email: string, senha: string): Promise<AuthenticatedUser> {
     const user = await this.usuarioService.findByEmail(email);
 
     if (!user) {
-      console.log('❌ Usuário não encontrado.');
-      throw new UnauthorizedException('Credenciais inválidas.');
+      throw new UnauthorizedException('Credenciais invalidas.');
     }
 
-    console.log(`✅ Usuário encontrado: ${user.email}`);
-
-    // 🚀 Comparando a senha usando `bcrypt.compare()`
-    console.log('🛠️ Testando user.comparePassword()...');
     const isPasswordValid = await bcrypt.compare(senha, user.senha);
-    console.log(`🔍 Resultado: ${isPasswordValid ? '✅ Senha correta' : '❌ Senha inválida'}`);
-
     if (!isPasswordValid) {
-      console.log('❌ Senha inválida.');
-      throw new UnauthorizedException('Credenciais inválidas.');
+      throw new UnauthorizedException('Credenciais invalidas.');
     }
-
-    console.log('✅ Senha correta. Login autorizado.');
 
     return {
       id: user.id,
       email: user.email,
       role: user.role,
+      id_estacionamento: user.id_estacionamento,
     };
   }
 
-  // 🔥 Correção: Agora o método `login` também retorna o ID do usuário
-  async login(user: { id: number; email: string; role: string }): Promise<{ id: number; access_token: string; role: string }> {
-    const payload = { id: user.id, email: user.email, role: user.role };
-    const access_token = this.jwtService.sign(payload);
+  async login(user: AuthenticatedUser) {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      id_estacionamento: user.id_estacionamento,
+    };
 
     return {
-      id: user.id,  // ✅ Agora o ID do usuário é incluído na resposta
-      access_token,
+      id: user.id,
+      access_token: this.jwtService.sign(payload),
       role: user.role,
+      id_estacionamento: user.id_estacionamento,
     };
   }
 }

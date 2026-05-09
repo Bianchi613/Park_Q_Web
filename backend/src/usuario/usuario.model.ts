@@ -6,8 +6,6 @@ import {
   ForeignKey,
   BelongsTo,
   HasMany,
-  BeforeCreate,
-  BeforeUpdate,
 } from 'sequelize-typescript';
 import { Estacionamento } from '../estacionamento/estacionamento.model';
 import { Operacao } from '../operacao/operacao.model';
@@ -40,6 +38,24 @@ export class Usuario extends Model<Usuario> {
     allowNull: true,
   })
   telefone: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  preferencias: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: true,
+  })
+  cargo: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  privilegios: string;
 
   @Column({
     type: DataType.STRING,

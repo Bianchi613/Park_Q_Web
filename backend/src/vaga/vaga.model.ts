@@ -5,7 +5,6 @@ import {
   Table,
   ForeignKey,
   BelongsTo,
-  HasMany,
 } from 'sequelize-typescript';
 import { Estacionamento } from '../estacionamento/estacionamento.model';
 import { Reserva } from '../reserva/reserva.model';

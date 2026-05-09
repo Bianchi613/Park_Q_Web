@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
 import { Reserva } from './reserva.model';
-import { Op } from 'sequelize';  // Certifique-se de importar o Op do Sequelize
+
 @Injectable()
 export class ReservaRepository {
   constructor(
@@ -9,64 +10,64 @@ export class ReservaRepository {
     private readonly reservaModel: typeof Reserva,
   ) {}
 
-  // Criação de uma nova reserva
-  async createReserva(data: any): Promise<Reserva> {
-    try {
-      return await this.reservaModel.create(data);
-    } catch (error) {
-      throw new Error(`Erro ao criar a reserva: ${error.message}`);
-    }
+  async createReserva(data: Partial<Reserva>): Promise<Reserva> {
+    return this.reservaModel.create(data);
   }
 
-  // Encontrar todas as reservas
   async findAllReservas(): Promise<Reserva[]> {
-    try {
-      return await this.reservaModel.findAll({
-        include: ['usuario', 'vaga'],
-      });
-    } catch (error) {
-      throw new Error(`Erro ao buscar as reservas: ${error.message}`);
-    }
+    return this.reservaModel.findAll({
+      include: ['usuario', 'vaga', 'plano'],
+      order: [['id', 'DESC']],
+    });
   }
 
-  // Encontrar uma reserva por ID
+  async findReservasByUsuario(idUsuario: number): Promise<Reserva[]> {
+    return this.reservaModel.findAll({
+      where: { id_usuario: idUsuario },
+      include: ['vaga', 'plano'],
+      order: [['id', 'DESC']],
+    });
+  }
+
   async findReservaById(id: number): Promise<Reserva> {
     const reserva = await this.reservaModel.findByPk(id, {
-      include: ['usuario', 'vaga'],
+      include: ['usuario', 'vaga', 'plano'],
     });
 
     if (!reserva) {
-      throw new NotFoundException('Reserva não encontrada');
+      throw new NotFoundException(`Reserva com ID ${id} nao encontrada.`);
     }
 
     return reserva;
   }
 
-  // Atualizar uma reserva
-  async updateReserva(id: number, data: any): Promise<Reserva> {
+  async updateReserva(id: number, data: Partial<Reserva>): Promise<Reserva> {
     const reserva = await this.findReservaById(id);
-    return reserva.update(data);
+    await reserva.update(data);
+    return this.findReservaById(id);
   }
 
-  // Excluir uma reserva
   async deleteReserva(id: number): Promise<void> {
     const reserva = await this.findReservaById(id);
     await reserva.destroy();
   }
 
-  // Verificar se há conflito de horário para a vaga
   async checkHorarioConflitante(
     idVaga: number,
     dataInicio: Date,
     dataFim: Date,
+    reservaId?: number,
   ): Promise<boolean> {
     const conflito = await this.reservaModel.findOne({
       where: {
+        ...(reservaId ? { id: { [Op.ne]: reservaId } } : {}),
         id_vaga: idVaga,
-        data_fim: { [Op.gt]: dataInicio },  // Usando Op para a comparação no Sequelize
+        status: { [Op.notIn]: ['CANCELADA', 'FINALIZADA', 'EXPIRADA'] },
+        data_fim: { [Op.gt]: dataInicio },
         data_reserva: { [Op.lt]: dataFim },
       },
     });
+
     return !!conflito;
   }
 }

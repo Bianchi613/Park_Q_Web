@@ -1,80 +1,129 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Estacionamento } from '../estacionamento/estacionamento.model';
 import { Vaga } from './vaga.model';
 
 @Injectable()
 export class VagaRepository {
   constructor(
-    @InjectModel(Vaga) // Verifica se o caminho está correto
+    @InjectModel(Vaga)
     private readonly vagaModel: typeof Vaga,
+    @InjectModel(Estacionamento)
+    private readonly estacionamentoModel: typeof Estacionamento,
   ) {}
 
-  // 🔍 **Encontrar Todas as Vagas**
-  async findAll(): Promise<Vaga[]> {
-    return this.vagaModel.findAll();
+  async findAll(idEstacionamento?: number): Promise<Vaga[]> {
+    return this.vagaModel.findAll({
+      where: idEstacionamento ? { id_estacionamento: idEstacionamento } : {},
+      order: [
+        ['id_estacionamento', 'ASC'],
+        ['numero', 'ASC'],
+      ],
+    });
   }
 
-  // 🔍 **Encontrar uma Vaga por ID**
   async findById(id: number): Promise<Vaga> {
     const vaga = await this.vagaModel.findByPk(id);
+
     if (!vaga) {
-      throw new NotFoundException(`Vaga com id ${id} não encontrada`);
+      throw new NotFoundException(`Vaga com ID ${id} nao encontrada.`);
     }
+
     return vaga;
   }
 
-  // 🟢 **Criar Nova Vaga**
   async create(vagaData: Partial<Vaga>): Promise<Vaga> {
-    return this.vagaModel.create(vagaData);
+    const vaga = await this.vagaModel.create({
+      status: 'disponivel',
+      reservada: false,
+      ...vagaData,
+    });
+    await this.syncVagasDisponiveis(vaga.id_estacionamento);
+    return vaga;
   }
 
-  // 🟡 **Atualizar Vaga**
   async update(id: number, vagaData: Partial<Vaga>): Promise<Vaga> {
-    const vaga = await this.findById(id); // Verifica se a vaga existe
-    await vaga.update(vagaData); // Atualiza os campos da vaga
+    const vaga = await this.findById(id);
+    const previousEstacionamentoId = vaga.id_estacionamento;
+
+    await vaga.update(vagaData);
+    await this.syncVagasDisponiveis(previousEstacionamentoId);
+
+    if (vaga.id_estacionamento !== previousEstacionamentoId) {
+      await this.syncVagasDisponiveis(vaga.id_estacionamento);
+    }
+
     return vaga;
   }
 
-  // 🔴 **Remover Vaga**
   async remove(id: number): Promise<void> {
-    const vaga = await this.findById(id); // Verifica se a vaga existe
-    await vaga.destroy(); // Exclui a vaga
+    const vaga = await this.findById(id);
+    const estacionamentoId = vaga.id_estacionamento;
+    await vaga.destroy();
+    await this.syncVagasDisponiveis(estacionamentoId);
   }
 
-  // 🔵 **Reservar uma Vaga**
-  async reservar(id: number): Promise<Vaga> {
-    const vaga = await this.findById(id); // Verifica se a vaga existe
-    if (vaga.reservada) {
-      throw new ConflictException(`A vaga com ID ${id} já está reservada`);
+  async reservar(id: number, idReserva?: number): Promise<Vaga> {
+    const vaga = await this.findById(id);
+
+    if (vaga.reservada || vaga.status !== 'disponivel') {
+      throw new ConflictException(`A vaga com ID ${id} nao esta disponivel.`);
     }
-    await vaga.update({ reservada: true, status: 'ocupada' }); // Atualiza a vaga para "ocupada"
+
+    await vaga.update({
+      reservada: true,
+      status: 'ocupada',
+      id_reserva: idReserva ?? vaga.id_reserva,
+    });
+    await this.syncVagasDisponiveis(vaga.id_estacionamento);
     return vaga;
   }
 
-  // 🟠 **Liberar uma Vaga**
   async liberar(id: number): Promise<Vaga> {
-    const vaga = await this.findById(id); // Verifica se a vaga existe
-    if (vaga.status !== 'ocupada') {
-      throw new ConflictException(
-        `A vaga com ID ${id} não pode ser liberada porque não está ocupada`,
-      );
+    const vaga = await this.findById(id);
+
+    if (!vaga.reservada && vaga.status === 'disponivel') {
+      return vaga;
     }
-    await vaga.update({ reservada: false, status: 'disponivel' }); // Atualiza a vaga para "disponivel"
+
+    await vaga.update({
+      reservada: false,
+      status: 'disponivel',
+      id_reserva: null,
+    });
+    await this.syncVagasDisponiveis(vaga.id_estacionamento);
     return vaga;
   }
 
-  // 🟣 **Atualizar Status de uma Vaga**
-  async updateStatus(id: number, status: string): Promise<void> {
-    const vaga = await this.findById(id); // Verifica se a vaga existe
-    await vaga.update({ status }); // Atualiza o status da vaga
+  async updateStatus(id: number, status: string): Promise<Vaga> {
+    const reservada = status !== 'disponivel';
+    return this.update(id, { status, reservada });
   }
 
-  // 🔍 **Buscar Vaga por ID**
-  async findOne(id: number): Promise<Vaga> {
-    return this.findById(id); // Alias para findById()
+  async syncVagasDisponiveis(idEstacionamento: number): Promise<void> {
+    if (!idEstacionamento) {
+      return;
+    }
+
+    const estacionamento =
+      await this.estacionamentoModel.findByPk(idEstacionamento);
+
+    if (!estacionamento) {
+      return;
+    }
+
+    const vagasDisponiveis = await this.vagaModel.count({
+      where: {
+        id_estacionamento: idEstacionamento,
+        status: 'disponivel',
+        reservada: false,
+      },
+    });
+
+    await estacionamento.update({ vagas_disponiveis: vagasDisponiveis });
   }
 }

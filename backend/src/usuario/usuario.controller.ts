@@ -1,36 +1,32 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
   ParseIntPipe,
-  HttpException,
-  HttpStatus,
-  BadRequestException,
+  Post,
+  Put,
 } from '@nestjs/common';
-import { UsuarioService } from './usuario.service';
-import { Usuario } from './usuario.model';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBody,
+  ApiOperation,
   ApiParam,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import * as bcrypt from 'bcrypt';
+import { Usuario } from './usuario.model';
+import { UsuarioService } from './usuario.service';
 
-@ApiTags('Usuários')
+@ApiTags('Usuarios')
 @Controller('usuarios')
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Cria um novo usuário' })
-  @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos.' })
+  @ApiOperation({ summary: 'Cria um novo usuario' })
+  @ApiResponse({ status: 201, description: 'Usuario criado com sucesso.' })
+  @ApiResponse({ status: 400, description: 'Dados invalidos.' })
   @ApiBody({
     schema: {
       example: {
@@ -42,125 +38,150 @@ export class UsuarioController {
         senha: '12345',
         role: 'ADMIN',
         id_estacionamento: 1,
+        cargo: 'Gerente',
+        privilegios: 'Gerenciar vagas e planos',
       },
     },
   })
   async create(@Body() data: Partial<Usuario>) {
-    try {
-      // Verifica se CLIENT ou VISITOR não possuem id_estacionamento
-      if (data.role !== 'ADMIN') {
-        data.id_estacionamento = null;
-      }
-
-      // Se for ADMIN, validar id_estacionamento
-      if (data.role === 'ADMIN' && !data.id_estacionamento) {
-        throw new BadRequestException('ADMIN precisa ter um id_estacionamento.');
-      }
-
-      // Criptografa a senha antes de salvar
-      const salt = await bcrypt.genSalt(10);
-      data.senha = await bcrypt.hash(data.senha, salt);
-
-      return await this.usuarioService.create(data);
-    } catch (error) {
-      throw new HttpException(
-        `Erro ao criar usuário: ${error.message}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    const usuario = await this.usuarioService.create(data);
+    return this.serialize(usuario);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retorna todos os usuários' })
+  @ApiOperation({ summary: 'Retorna todos os usuarios' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de usuários retornada com sucesso.',
+    description: 'Lista de usuarios retornada com sucesso.',
   })
   async findAll() {
     const usuarios = await this.usuarioService.findAll();
-    return usuarios.map((usuario) => {
-      delete usuario.senha; // Remove a senha do objeto de retorno
-      return usuario;
-    });
+    return usuarios.map((usuario) => this.serialize(usuario));
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Retorna um usuário pelo ID' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário encontrado.' })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
+  @ApiOperation({ summary: 'Retorna um usuario pelo ID' })
+  @ApiParam({ name: 'id', description: 'ID do usuario' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado.' })
+  @ApiResponse({ status: 404, description: 'Usuario nao encontrado.' })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const usuario = await this.usuarioService.findOne(id);
-      delete usuario.senha; // Remove a senha do objeto de retorno
-      return usuario;
-    } catch (error) {
-      throw new HttpException(
-        `Erro ao buscar usuário: ${error.message}`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const usuario = await this.usuarioService.findOne(id);
+    return this.serialize(usuario);
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Atualiza os dados de um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário atualizado com sucesso.' })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
-  @ApiBody({
-    schema: {
-      example: {
-        CPF: '12345678901',
-        nome: 'Alan Bianchi Atualizado',
-        email: 'alan@bianchi.com',
-        telefone: '11988888888',
-        login: 'alanbianchi2',
-        senha: '54321',
-        role: 'CLIENT',
-        id_estacionamento: null,
-      },
-    },
-  })
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: Partial<Usuario>) {
-    try {
-      // Verifica se CLIENT ou VISITOR não possuem id_estacionamento
-      if (data.role !== 'ADMIN') {
-        data.id_estacionamento = null;
-      }
-
-      // Se for ADMIN, validar id_estacionamento
-      if (data.role === 'ADMIN' && !data.id_estacionamento) {
-        throw new BadRequestException('ADMIN precisa ter um id_estacionamento.');
-      }
-
-      // Se a senha for fornecida, criptografa antes de atualizar
-      if (data.senha) {
-        const salt = await bcrypt.genSalt(10);
-        data.senha = await bcrypt.hash(data.senha, salt);
-      }
-
-      return await this.usuarioService.update(id, data);
-    } catch (error) {
-      throw new HttpException(
-        `Erro ao atualizar usuário: ${error.message}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+  @ApiOperation({ summary: 'Atualiza os dados de um usuario' })
+  @ApiParam({ name: 'id', description: 'ID do usuario' })
+  @ApiResponse({ status: 200, description: 'Usuario atualizado com sucesso.' })
+  @ApiResponse({ status: 404, description: 'Usuario nao encontrado.' })
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: Partial<Usuario>,
+  ) {
+    const usuario = await this.usuarioService.update(id, data);
+    return this.serialize(usuario);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Exclui um usuário pelo ID' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 204, description: 'Usuário excluído com sucesso.' })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
+  @ApiOperation({ summary: 'Exclui um usuario pelo ID' })
+  @ApiParam({ name: 'id', description: 'ID do usuario' })
+  @ApiResponse({ status: 200, description: 'Usuario excluido com sucesso.' })
+  @ApiResponse({ status: 404, description: 'Usuario nao encontrado.' })
   async delete(@Param('id', ParseIntPipe) id: number) {
-    try {
-      return await this.usuarioService.delete(id);
-    } catch (error) {
-      throw new HttpException(
-        `Erro ao excluir usuário: ${error.message}`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    return this.usuarioService.delete(id);
+  }
+
+  @Post(':id/reservar-vaga')
+  @ApiOperation({ summary: 'Reserva uma vaga para um usuario CLIENT' })
+  @ApiParam({ name: 'id', description: 'ID do usuario' })
+  @ApiBody({
+    schema: {
+      example: {
+        id_vaga: 1,
+        id_plano: 1,
+        valor: 50,
+        dataInicio: '2024-12-15T08:00:00Z',
+        dataFim: '2024-12-15T18:00:00Z',
+      },
+    },
+  })
+  async reservarVaga(@Param('id', ParseIntPipe) id: number, @Body() data: any) {
+    return this.usuarioService.reservarVaga(id, data);
+  }
+
+  @Post(':id/cancelar-reserva')
+  @ApiOperation({ summary: 'Cancela uma reserva de um usuario CLIENT' })
+  @ApiParam({ name: 'id', description: 'ID do usuario' })
+  @ApiBody({
+    schema: {
+      example: {
+        id_reserva: 1,
+      },
+    },
+  })
+  async cancelarReserva(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: any,
+  ) {
+    return this.usuarioService.cancelarReserva(id, data);
+  }
+
+  @Get(':id/reservas')
+  @ApiOperation({
+    summary: 'Retorna o historico de reservas do usuario CLIENT',
+  })
+  @ApiParam({ name: 'id', description: 'ID do usuario' })
+  async historicoReservas(@Param('id', ParseIntPipe) id: number) {
+    return this.usuarioService.historicoReservas(id);
+  }
+
+  @Post(':id/adicionar-vaga')
+  @ApiOperation({ summary: 'Adiciona uma vaga como usuario ADMIN' })
+  @ApiParam({ name: 'id', description: 'ID do usuario admin' })
+  @ApiBody({
+    schema: {
+      example: {
+        numero: 101,
+        tipo: 'carro',
+        status: 'disponivel',
+      },
+    },
+  })
+  async adicionarVaga(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: any,
+  ) {
+    return this.usuarioService.adicionarVaga(id, data);
+  }
+
+  @Delete(':id/remover-vaga/:vagaId')
+  @ApiOperation({ summary: 'Remove uma vaga como usuario ADMIN' })
+  @ApiParam({ name: 'id', description: 'ID do usuario admin' })
+  @ApiParam({ name: 'vagaId', description: 'ID da vaga' })
+  async removerVaga(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('vagaId', ParseIntPipe) vagaId: number,
+  ) {
+    return this.usuarioService.removerVaga(id, vagaId);
+  }
+
+  @Get(':id/monitorar-ocupacao')
+  @ApiOperation({ summary: 'Monitora a ocupacao como usuario ADMIN' })
+  @ApiParam({ name: 'id', description: 'ID do usuario admin' })
+  async monitorarOcupacao(@Param('id', ParseIntPipe) id: number) {
+    return this.usuarioService.monitorarOcupacao(id);
+  }
+
+  @Get(':id/relatorio')
+  @ApiOperation({ summary: 'Gera relatorio como usuario ADMIN' })
+  @ApiParam({ name: 'id', description: 'ID do usuario admin' })
+  async gerarRelatorio(@Param('id', ParseIntPipe) id: number) {
+    return this.usuarioService.gerarRelatorio(id);
+  }
+
+  private serialize(usuario: Usuario) {
+    const plain = usuario.get ? usuario.get({ plain: true }) : usuario;
+    delete plain.senha;
+    return plain;
   }
 }
