@@ -55,6 +55,33 @@ const MapFocusController = ({ parking, focusKey }) => {
   return null;
 };
 
+const VehicleIcon = ({ type }) => {
+  const isMoto = normalizeStatus(type) === 'moto';
+
+  if (isMoto) {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+        <path d="M5.4 16.8a2.4 2.4 0 1 0 4.8 0 2.4 2.4 0 0 0-4.8 0Z" />
+        <path d="M15.6 16.8a2.4 2.4 0 1 0 4.8 0 2.4 2.4 0 0 0-4.8 0Z" />
+        <path d="M8.2 16.1h3.1l2.4-4.1h2.1l2.2 4.1" />
+        <path d="M11.2 12h-2l-2 3.8" />
+        <path d="M14.2 9.3h3l1.4 2.7" />
+        <path d="M13.7 8h1.8" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M5 14.5 6.8 9.2A2 2 0 0 1 8.7 8h6.6a2 2 0 0 1 1.9 1.2l1.8 5.3" />
+      <path d="M4.5 14.5h15v4h-2.2v-1.4H6.7v1.4H4.5v-4Z" />
+      <path d="M7.2 15.8h.1" />
+      <path d="M16.7 15.8h.1" />
+      <path d="M7.7 11h8.6" />
+    </svg>
+  );
+};
+
 const ClientDashboard = () => {
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
@@ -217,6 +244,27 @@ const ClientDashboard = () => {
       vagasDisponiveis.find((vaga) => String(vaga.id) === String(selectedVagaId)),
     [selectedVagaId, vagasDisponiveis],
   );
+
+  const vagasPorTipo = useMemo(() => {
+    const groups = [
+      {
+        id: 'carro',
+        label: 'Carro',
+        vagas: vagasDisponiveis.filter(
+          (vaga) => normalizeStatus(vaga.tipo) !== 'moto',
+        ),
+      },
+      {
+        id: 'moto',
+        label: 'Moto',
+        vagas: vagasDisponiveis.filter(
+          (vaga) => normalizeStatus(vaga.tipo) === 'moto',
+        ),
+      },
+    ];
+
+    return groups.filter((group) => group.vagas.length > 0);
+  }, [vagasDisponiveis]);
 
   const mapCenter = useMemo(() => {
     if (userLocation) {
@@ -508,25 +556,37 @@ const ClientDashboard = () => {
                       {loadingVagas ? (
                         <p>Buscando vagas desse estacionamento...</p>
                       ) : vagasDisponiveis.length > 0 ? (
-                        <div className="spot-chip-grid">
-                          {vagasDisponiveis.map((vaga) => (
-                            <button
-                              key={vaga.id}
-                              type="button"
-                              className={
-                                String(vaga.id) === String(selectedVagaId)
-                                  ? 'active'
-                                  : ''
-                              }
-                              aria-pressed={String(vaga.id) === String(selectedVagaId)}
-                              onClick={() => handleSelectVaga(vaga)}
-                            >
-                              <strong>#{vaga.numero}</strong>
-                              <span>{vaga.tipo || 'vaga'}</span>
-                              {String(vaga.id) === String(selectedVagaId) && (
-                                <em>Selecionada</em>
-                              )}
-                            </button>
+                        <div className="spot-groups">
+                          {vagasPorTipo.map((group) => (
+                            <section className="spot-group" key={group.id}>
+                              <div className="spot-group-title">
+                                <span className={`vehicle-badge ${group.id}`}>
+                                  <VehicleIcon type={group.id} />
+                                </span>
+                                <strong>{group.label}</strong>
+                                <em>{group.vagas.length}</em>
+                              </div>
+                              <div className="spot-chip-grid">
+                                {group.vagas.map((vaga) => {
+                                  const isSelected =
+                                    String(vaga.id) === String(selectedVagaId);
+
+                                  return (
+                                    <button
+                                      key={vaga.id}
+                                      type="button"
+                                      className={isSelected ? 'active' : ''}
+                                      aria-pressed={isSelected}
+                                      onClick={() => handleSelectVaga(vaga)}
+                                    >
+                                      <VehicleIcon type={vaga.tipo} />
+                                      <strong>{vaga.numero}</strong>
+                                      {isSelected && <em>OK</em>}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </section>
                           ))}
                         </div>
                       ) : (
