@@ -1,37 +1,52 @@
 import { useNavigate } from 'react-router-dom';
-import './Header.css'; // Importando o CSS para o estilo
+import { clearSession, getSession } from '../../services/authService';
+import './Header.css';
 
-const Header = () => {
+const Header = ({ children }) => {
   const navigate = useNavigate();
+  const { userId, role } = getSession();
+  const isVisitor = role === 'VISITOR' || !userId;
 
   const handleLogout = () => {
-    // Ação para deslogar o usuário, como limpar o token de autenticação
-    localStorage.removeItem('token'); // Exemplo de remoção do token do localStorage
-    localStorage.removeItem('userId'); // Limpar o userId do localStorage também
-    navigate('/login'); // Redireciona para a página de login
+    clearSession();
+    navigate('/login');
   };
 
-  const handleProfile = () => {
-    // Acessa o userId do localStorage
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      navigate(`/perfil/${userId}`); // Redireciona para a página de perfil com o ID
-    } else {
-      console.error('ID do usuário não encontrado!');
-    }
+  const handleDashboard = () => {
+    navigate(role === 'ADMIN' ? '/admin-dashboard' : '/client-dashboard');
   };
 
   return (
     <header className="header">
       <div className="header-content">
-        <h1>Park Q </h1>
+        <button className="brand-button" type="button" onClick={handleDashboard}>
+          Park Q
+        </button>
+        {children && <div className="header-center">{children}</div>}
         <div className="header-buttons">
-          <button className="profile-button" onClick={handleProfile}>
-            Perfil
-          </button>
-          <button className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
+          {isVisitor ? (
+            <>
+              <button type="button" className="profile-button" onClick={() => navigate('/login')}>
+                Fazer login
+              </button>
+              <button type="button" className="logout-button" onClick={() => navigate('/register')}>
+                Cadastrar-se
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="profile-button"
+                type="button"
+                onClick={() => userId && navigate(`/perfil/${userId}`)}
+              >
+                Perfil
+              </button>
+              <button className="logout-button" type="button" onClick={handleLogout}>
+                Sair
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>

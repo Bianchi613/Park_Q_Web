@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Importe o useNavigate
 import Header from "../Layout/Header"; // Importe o Header
+import { planosApi } from "../../services/api";
 import './TariffPlan.css';
 
 const TariffPlan = () => {
@@ -22,8 +22,8 @@ const TariffPlan = () => {
 
   const fetchPlanos = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/planos-tarifacao");
-      setPlanos(response.data);
+      const data = await planosApi.list();
+      setPlanos(data);
     } catch (error) {
       setError("Erro ao buscar planos de tarifação.");
       console.error(error);
@@ -51,10 +51,10 @@ const TariffPlan = () => {
 
     try {
       if (editingPlan) {
-        await axios.patch(`http://localhost:3000/planos-tarifacao/${editingPlan.id}`, novoPlano);
+        await planosApi.update(editingPlan.id, novoPlano);
         setSuccess("Plano atualizado com sucesso!");
       } else {
-        await axios.post("http://localhost:3000/planos-tarifacao", novoPlano);
+        await planosApi.create(novoPlano);
         setSuccess("Plano criado com sucesso!");
       }
       fetchPlanos();
@@ -68,7 +68,7 @@ const TariffPlan = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/planos-tarifacao/${id}`);
+      await planosApi.remove(id);
       setSuccess("Plano excluído com sucesso!");
       fetchPlanos();
     } catch (error) {

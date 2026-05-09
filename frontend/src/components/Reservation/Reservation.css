@@ -1,172 +1,163 @@
-/* Estilos gerais */
-.reservation-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px;
-  background-color: #f5f5f5; /* Fundo claro */
-  font-family: 'Arial', sans-serif;
+.reservation-page {
   min-height: 100vh;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  background: #f5f7fb;
+  color: #172033;
 }
 
-h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
-  color: #333333; /* Texto escuro */
-  text-align: center;
+.reservation-shell {
+  width: min(1020px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
 }
 
-/* Container do mapa */
-.map-container {
-  width: 100%;
-  max-width: 1000px;
-  height: 400px;
-  margin-bottom: 30px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.ghost-button {
+  margin-bottom: 14px;
+  background: #ffffff;
+  color: #172033;
+  border: 1px solid #cbd5e1;
 }
 
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-}
-
-/* Exibindo planos de tarifação */
-.planos-tarifacao {
-  width: 100%;
-  max-width: 1000px;
-  margin-bottom: 20px;
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.planos-tarifacao h3 {
-  font-size: 18px;
-  color: #333333;
-  margin-bottom: 10px;
-}
-
-.planos-tarifacao select {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
+.reservation-title,
+.reservation-card {
+  background: #ffffff;
+  border: 1px solid #d9e2ef;
   border-radius: 8px;
-  border: 1px solid #cccccc;
-  background-color: #ffffff;
-  margin-bottom: 20px;
-  color: #555555;
-  transition: border 0.3s ease;
 }
 
-.planos-tarifacao select:focus {
-  border: 1px solid #28a745; /* Cor do plano de tarifação selecionado */
-  outline: none;
-}
-
-.planos-tarifacao option {
-  padding: 10px;
-}
-
-/* Carrossel de vagas */
-.vaga-carousel {
-  width: 100%;
-  max-width: 1000px;
-  margin-bottom: 30px;
-}
-
-.vaga-item {
-  background-color: #ffffff; /* Fundo branco */
-  border-radius: 12px;
+.reservation-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   padding: 20px;
-  margin: 0 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-align: center;
+  margin-bottom: 16px;
 }
 
-.vaga-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+.reservation-title h2,
+.reservation-card h3 {
+  margin: 0;
+  color: #111827;
 }
 
-.vaga-info {
-  flex: 1;
+.reservation-title p {
+  margin: 6px 0 0;
+  color: #5b677a;
 }
 
-.vaga-info h3 {
-  font-size: 20px;
-  margin-bottom: 8px;
-  color: #333333; /* Texto escuro */
+.reservation-count {
+  display: grid;
+  place-items: center;
+  min-width: 120px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #065f46;
 }
 
-.vaga-info p {
-  font-size: 14px;
-  margin: 4px 0;
-  color: #666666; /* Texto cinza */
+.reservation-count strong {
+  font-size: 2rem;
 }
 
-.vaga-info .status {
-  font-weight: bold;
+.reservation-alert {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
 }
 
-.vaga-info .status.disponivel {
-  color: #28a745; /* Verde para disponível */
+.reservation-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-.vaga-info .status.indisponivel {
-  color: #dc3545; /* Vermelho para indisponível */
+.reservation-card {
+  padding: 18px;
 }
 
-.vaga-info .tipo {
-  font-style: italic;
-  color: #555555;
-}
-/* Botões */
-.confirm-button {
-  padding: 8px 16px; /* Reduzindo o padding */
-  border: none;
-  border-radius: 6px; /* Menos arredondado */
-  font-size: 14px; /* Reduzindo o tamanho da fonte */
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 8px; /* Ajuste no espaçamento */
+.reservation-card label {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  color: #334155;
+  text-align: left;
 }
 
-.confirm-button.disponivel {
-  background-color: #28a745; /* Verde para disponível */
-  color: #ffffff;
+.reservation-card input,
+.reservation-card select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #172033;
 }
 
-.confirm-button.disponivel:hover {
-  background-color: #218838; /* Verde mais escuro ao passar o mouse */
+.summary-line,
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf2f7;
 }
 
-.confirm-button.indisponivel {
-  background-color: #dc3545; /* Vermelho para indisponível */
-  color: #ffffff;
-  cursor: not-allowed;
+.summary-line span,
+.summary-total span {
+  color: #5b677a;
 }
 
-/* Botão de voltar */
-.back-button {
-  margin-top: 16px; /* Ajuste no espaçamento */
-  padding: 8px 16px; /* Reduzindo o padding */
-  background-color: #333333; /* Botão preto */
-  color: #ffffff;
-  border: none;
-  border-radius: 6px; /* Menos arredondado */
-  font-size: 14px; /* Reduzindo o tamanho da fonte */
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.summary-total {
+  margin-bottom: 14px;
+  border-bottom: 0;
+  font-size: 1.1rem;
 }
 
-.back-button:hover {
-  background-color: #555555; /* Cinza mais claro ao passar o mouse */
+.summary-total strong {
+  color: #0f766e;
+}
+
+.reservation-spots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.reservation-spots button {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  background: #f8fafc;
+  color: #172033;
+  border: 1px solid #cbd5e1;
+  text-align: left;
+}
+
+.reservation-spots button.active {
+  background: #ecfdf5;
+  border-color: #0f766e;
+}
+
+.reservation-spots span {
+  color: #5b677a;
+}
+
+@media (max-width: 820px) {
+  .reservation-grid,
+  .reservation-title {
+    grid-template-columns: 1fr;
+  }
+
+  .reservation-grid {
+    display: grid;
+  }
+
+  .reservation-title {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }

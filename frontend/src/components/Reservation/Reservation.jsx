@@ -1,196 +1,250 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import './Reservation.css';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../Layout/Header';
+import {
+  estacionamentosApi,
+  planosApi,
+  reservasApi,
+  vagasApi,
+} from '../../services/api';
+import './Reservation.css';
+
+const formatMoney = (value) =>
+  Number(value || 0).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+
+const toLocalInputValue = (date) => {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+};
 
 const Reservation = () => {
-  const [vagas, setVagas] = useState([]);
-  const [estacionamento, setEstacionamento] = useState(null);
-  const [coordenadas, setCoordenadas] = useState([-22.9068, -43.1729]); // Coordenadas padrão (Rio de Janeiro)
-  const [planosTarifacao, setPlanosTarifacao] = useState([]); // Armazena os planos de tarifação
-  const [planoSelecionado, setPlanoSelecionado] = useState({ id: null, taxa_base: 0 }); // Armazena o plano selecionado com id e taxa
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const initialVagaId = searchParams.get('vaga') || '';
+  const [estacionamento, setEstacionamento] = useState(null);
+  const [vagas, setVagas] = useState([]);
+  const [planos, setPlanos] = useState([]);
+  const [selectedVagaId, setSelectedVagaId] = useState('');
+  const [selectedPlanoId, setSelectedPlanoId] = useState('');
+  const [dataInicio, setDataInicio] = useState(toLocalInputValue(new Date()));
+  const [dataFim, setDataFim] = useState(
+    toLocalInputValue(new Date(Date.now() + 2 * 60 * 60 * 1000)),
+  );
+  const [tarifa, setTarifa] = useState(null);
+  const [status, setStatus] = useState('Carregando reserva...');
 
   useEffect(() => {
-    // Buscar informações do estacionamento
-    axios.get(`http://localhost:3000/estacionamentos/${id}`)
-      .then(response => {
-        setEstacionamento(response.data);
-        // Obter coordenadas a partir do endereço
-        geocodificarEndereco(response.data.localizacao);
-      })
-      .catch(error => {
-        console.error('Erro ao carregar o estacionamento:', error);
-        // Usar coordenadas padrão em caso de erro
-        setCoordenadas([-22.9068, -43.1729]);
-      });
+    const loadReservationData = async () => {
+      try {
+        const [parkingData, vagasData, planosData] = await Promise.all([
+          estacionamentosApi.get(id),
+          vagasApi.list({ id_estacionamento: id }),
+          planosApi.list(),
+        ]);
 
-    // Buscar vagas
-    axios.get(`http://localhost:3000/vagas?id_estacionamento=${id}`)
-      .then(response => setVagas(response.data))
-      .catch(error => console.error('Erro ao carregar as vagas:', error));
+        setEstacionamento(parkingData);
+        const vagasList = Array.isArray(vagasData) ? vagasData : [];
 
-    // Buscar planos de tarifação
-    axios.get(`http://localhost:3000/planos-tarifacao`)
-      .then(response => setPlanosTarifacao(response.data))
-      .catch(error => console.error('Erro ao carregar os planos de tarifação:', error));
-  }, [id]);
-
-  // Função para geocodificar o endereço
-  const geocodificarEndereco = (endereco) => {
-    const apiKey = 'SUA_CHAVE_DE_API_DO_GOOGLE_MAPS'; // Substitua pela sua chave de API
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(endereco)}&key=${apiKey}`;
-
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        if (data.results && data.results.length > 0) {
-          const location = data.results[0].geometry.location;
-          setCoordenadas([location.lat, location.lng]); // Define as coordenadas
-        } else {
-          console.error('Endereço não encontrado. Usando coordenadas padrão.');
-          setCoordenadas([-22.9068, -43.1729]); // Usar coordenadas padrão
+        setVagas(vagasList);
+        if (initialVagaId && vagasList.some((vaga) => String(vaga.id) === initialVagaId)) {
+          setSelectedVagaId(initialVagaId);
         }
-      })
-      .catch(error => {
-        console.error('Erro ao buscar coordenadas:', error);
-        setCoordenadas([-22.9068, -43.1729]); // Usar coordenadas padrão
-      });
-  };
+        setPlanos(Array.isArray(planosData) ? planosData : []);
+        setStatus('');
+      } catch (error) {
+        setStatus(
+          error.response?.data?.message ||
+            'Nao foi possivel carregar dados para reserva.',
+        );
+      }
+    };
 
-  const handleConfirm = (vaga) => {
-    const userId = localStorage.getItem('userId'); // Obtém o ID do usuário do localStorage
+    loadReservationData();
+  }, [id, initialVagaId]);
 
-    if (!userId) {
-      alert('Usuário não autenticado. Faça login para continuar.');
-      navigate('/login'); // Redireciona para a página de login
+  const selectedVaga = useMemo(
+    () => vagas.find((vaga) => String(vaga.id) === String(selectedVagaId)),
+    [selectedVagaId, vagas],
+  );
+
+  const selectedPlano = useMemo(
+    () => planos.find((plano) => String(plano.id) === String(selectedPlanoId)),
+    [selectedPlanoId, planos],
+  );
+
+  useEffect(() => {
+    const calcularTarifa = async () => {
+      if (!selectedPlano || !selectedVaga || !dataInicio || !dataFim) {
+        setTarifa(null);
+        return;
+      }
+
+      const inicio = new Date(dataInicio);
+      const fim = new Date(dataFim);
+      const duracaoHoras = Math.max(
+        1,
+        Math.ceil((fim.getTime() - inicio.getTime()) / (1000 * 60 * 60)),
+      );
+
+      try {
+        const calculo = await planosApi.calcular(selectedPlano.id, {
+          tipoVaga: selectedVaga.tipo,
+          duracaoHoras,
+        });
+        setTarifa(calculo);
+      } catch {
+        setTarifa({
+          valor: Number(selectedPlano.taxa_base || 0),
+          duracaoHoras,
+        });
+      }
+    };
+
+    calcularTarifa();
+  }, [dataFim, dataInicio, selectedPlano, selectedVaga]);
+
+  const vagasDisponiveis = vagas.filter(
+    (vaga) => vaga.status === 'disponivel' && !vaga.reservada,
+  );
+
+  const criarReserva = async () => {
+    if (!selectedVaga || !selectedPlano) {
+      setStatus('Selecione uma vaga e um plano.');
       return;
     }
 
-    if (vaga.status === 'disponivel' && planoSelecionado.id) {
-      // Redireciona para a página de pagamento com os detalhes da vaga e plano de tarifação
-      navigate('/payment', { 
-        state: { 
-          id_vaga: vaga.id,               // ID da vaga
-          id_usuario: userId,             // ID do usuário
-          valor: planoSelecionado.taxa_base, // Valor baseado na tarifa selecionada
-          plano_id: planoSelecionado.id   // ID do plano de tarifação
-        }
+    if (new Date(dataFim) <= new Date(dataInicio)) {
+      setStatus('A data final precisa ser maior que a data inicial.');
+      return;
+    }
+
+    try {
+      const reserva = await reservasApi.create({
+        id_vaga: selectedVaga.id,
+        id_plano: selectedPlano.id,
+        data_reserva: new Date(dataInicio).toISOString(),
+        data_fim: new Date(dataFim).toISOString(),
       });
-    } else if (!planoSelecionado.id) {
-      alert('Por favor, selecione um plano de tarifação.');
-    } else {
-      alert('Esta vaga não está disponível para reserva.');
+
+      navigate('/payment', {
+        state: {
+          reservaId: reserva.id,
+          valor: reserva.valor,
+          id_vaga: selectedVaga.id,
+          planoDescricao: selectedPlano.descricao,
+        },
+      });
+    } catch (error) {
+      setStatus(error.response?.data?.message || 'Erro ao criar reserva.');
     }
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  // Configurações do carrossel
-  const carouselSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
-    ],
-  };
-
   return (
-    <div className="reservation-container">
+    <div className="reservation-page">
       <Header />
-      <h2>Reservar uma vaga</h2>
 
-      {/* Mapa interativo */}
-      <div className="map-container">
-        <MapContainer
-          center={coordenadas} // Usando coordenadas obtidas ou padrão
-          zoom={15} // Ajuste o zoom conforme necessário
-          className="leaflet-container"
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
-          />
-          <Marker position={coordenadas}>
-            <Popup>📍 {estacionamento ? estacionamento.nome : 'Estacionamento'}</Popup>
-          </Marker>
-        </MapContainer>
-      </div>
+      <main className="reservation-shell">
+        <button className="ghost-button" type="button" onClick={() => navigate(-1)}>
+          Voltar
+        </button>
 
-      {/* Menu suspenso para selecionar um plano de tarifação */}
-      <div className="planos-tarifacao">
-        <h3>Selecione um plano de tarifação:</h3>
-        <select 
-          onChange={(e) => {
-            const selectedPlano = planosTarifacao.find(plano => plano.id === Number(e.target.value));
-            setPlanoSelecionado(selectedPlano);
-          }}
-          value={planoSelecionado.id || ''}
-        >
-          <option value="" disabled>Escolha um plano</option>
-          {planosTarifacao.map(plano => (
-            <option key={plano.id} value={plano.id}>
-              {plano.descricao} - Taxa Base: R$ {plano.taxa_base}
-            </option>
-          ))}
-        </select>
-      </div>
+        <section className="reservation-title">
+          <div>
+            <p className="eyebrow">Reserva</p>
+            <h2>{estacionamento?.nome || 'Escolha sua vaga'}</h2>
+            <p>{estacionamento?.localizacao}</p>
+          </div>
+          <div className="reservation-count">
+            <strong>{vagasDisponiveis.length}</strong>
+            vagas livres
+          </div>
+        </section>
 
-      {/* Carrossel de vagas */}
-      <div className="vaga-carousel">
-        {vagas.length > 0 ? (
-          <Slider {...carouselSettings}>
-            {vagas.map(vaga => (
-              <div key={vaga.id} className="vaga-item">
-                <div className="vaga-info">
-                  <h3>{`Vaga ${vaga.numero}`}</h3>
-                  <p className={`status ${vaga.status}`}>
-                    {vaga.status === 'disponivel' ? 'Disponível' : 'Indisponível'}
-                  </p>
-                  <p className="tipo">{vaga.tipo}</p>
-                </div>
-                <button
-                  className={`confirm-button ${vaga.status}`}
-                  disabled={vaga.status !== 'disponivel'}
-                  onClick={() => handleConfirm(vaga)}
-                >
-                  {vaga.status === 'disponivel' ? 'Confirmar' : 'Indisponível'}
-                </button>
-              </div>
+        {status && <div className="reservation-alert">{status}</div>}
+
+        <section className="reservation-grid">
+          <div className="reservation-card">
+            <h3>Periodo e plano</h3>
+            <label>
+              Inicio
+              <input
+                type="datetime-local"
+                value={dataInicio}
+                onChange={(event) => setDataInicio(event.target.value)}
+              />
+            </label>
+            <label>
+              Fim
+              <input
+                type="datetime-local"
+                value={dataFim}
+                onChange={(event) => setDataFim(event.target.value)}
+              />
+            </label>
+            <label>
+              Plano de tarifacao
+              <select
+                value={selectedPlanoId}
+                onChange={(event) => setSelectedPlanoId(event.target.value)}
+              >
+                <option value="">Selecione um plano</option>
+                {planos.map((plano) => (
+                  <option key={plano.id} value={plano.id}>
+                    {plano.descricao || `Plano ${plano.id}`} ·{' '}
+                    {formatMoney(plano.taxa_base)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="reservation-card">
+            <h3>Resumo</h3>
+            <div className="summary-line">
+              <span>Vaga</span>
+              <strong>
+                {selectedVaga ? `#${selectedVaga.numero} (${selectedVaga.tipo})` : '-'}
+              </strong>
+            </div>
+            <div className="summary-line">
+              <span>Plano</span>
+              <strong>{selectedPlano?.descricao || '-'}</strong>
+            </div>
+            <div className="summary-line">
+              <span>Duracao</span>
+              <strong>{tarifa?.duracaoHoras || 0}h</strong>
+            </div>
+            <div className="summary-total">
+              <span>Total previsto</span>
+              <strong>{formatMoney(tarifa?.valor || selectedPlano?.taxa_base)}</strong>
+            </div>
+            <button type="button" onClick={criarReserva}>
+              Criar reserva e pagar
+            </button>
+          </div>
+        </section>
+
+        <section className="reservation-card">
+          <h3>Vagas disponiveis</h3>
+          <div className="reservation-spots">
+            {vagasDisponiveis.map((vaga) => (
+              <button
+                key={vaga.id}
+                type="button"
+                className={String(vaga.id) === String(selectedVagaId) ? 'active' : ''}
+                onClick={() => setSelectedVagaId(vaga.id)}
+              >
+                <strong>Vaga {vaga.numero}</strong>
+                <span>{vaga.tipo}</span>
+              </button>
             ))}
-          </Slider>
-        ) : (
-          <p className="no-vagas">Não há vagas disponíveis no momento.</p>
-        )}
-      </div>
-
-      {/* Botão de voltar */}
-      <button className="back-button" onClick={handleBack}>Voltar</button>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

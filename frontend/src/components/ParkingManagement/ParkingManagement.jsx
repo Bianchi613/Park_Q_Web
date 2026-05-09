@@ -1,341 +1,446 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Importe o useNavigate
-import Header from "../Layout/Header"; // Importe o Header
-import "./ParkingManagement.css";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '../Layout/Header';
+import { estacionamentosApi, vagasApi } from '../../services/api';
+import './ParkingManagement.css';
+
+const emptyParking = {
+  nome: '',
+  localizacao: '',
+  latitude: '',
+  longitude: '',
+  capacidade: '',
+  vagas_disponiveis: '',
+  categoria: '',
+  imagemUrl: '',
+};
+
+const emptySpot = {
+  numero: '',
+  status: 'disponivel',
+  tipo: 'carro',
+  reservada: false,
+};
 
 const ParkingManagement = () => {
-  const navigate = useNavigate(); // Hook para navegação
-  const [parkings, setParkings] = useState([]); // Lista de estacionamentos
-  const [spots, setSpots] = useState([]); // Lista de vagas
-  const [selectedParking, setSelectedParking] = useState(null); // Estacionamento selecionado
-  const [showParkingForm, setShowParkingForm] = useState(false); // Modal do formulário de estacionamento
-  const [showSpotForm, setShowSpotForm] = useState(false); // Modal do formulário de vaga
-  const [currentParking, setCurrentParking] = useState({}); // Dados do estacionamento sendo editado
-  const [currentSpot, setCurrentSpot] = useState({}); // Dados da vaga sendo editada
+  const navigate = useNavigate();
+  const [parkings, setParkings] = useState([]);
+  const [spots, setSpots] = useState([]);
+  const [selectedParking, setSelectedParking] = useState(null);
+  const [showParkingForm, setShowParkingForm] = useState(false);
+  const [showSpotForm, setShowSpotForm] = useState(false);
+  const [currentParking, setCurrentParking] = useState(emptyParking);
+  const [currentSpot, setCurrentSpot] = useState(emptySpot);
+  const [status, setStatus] = useState('');
 
-  // Carrega estacionamentos ao iniciar
+  const fetchParkings = async () => {
+    try {
+      const data = await estacionamentosApi.list();
+      setParkings(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setStatus(error.response?.data?.message || 'Erro ao buscar estacionamentos.');
+    }
+  };
+
+  const fetchSpots = async (parkingId) => {
+    try {
+      const data = await vagasApi.list({ id_estacionamento: parkingId });
+      setSpots(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setStatus(error.response?.data?.message || 'Erro ao buscar vagas.');
+    }
+  };
+
   useEffect(() => {
     fetchParkings();
   }, []);
 
-  // Carrega vagas quando um estacionamento é selecionado
   useEffect(() => {
     if (selectedParking) {
       fetchSpots(selectedParking.id);
     }
   }, [selectedParking]);
 
-  // Função para buscar estacionamentos
-  const fetchParkings = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/estacionamentos");
-      const data = await response.json();
-      setParkings(data);
-    } catch (error) {
-      console.error("Erro ao buscar estacionamentos:", error);
-    }
-  };
+  const handleSaveParking = async (event) => {
+    event.preventDefault();
 
-  // Função para buscar vagas de um estacionamento
-  const fetchSpots = async (parkingId) => {
-    try {
-      const response = await fetch(`http://localhost:3000/vagas?id_estacionamento=${parkingId}`);
-      const data = await response.json();
-      setSpots(data);
-    } catch (error) {
-      console.error("Erro ao buscar vagas:", error);
-    }
-  };
-
-  // Função para adicionar/editar estacionamento
-  const handleSaveParking = async (parking) => {
-    const url = parking.id
-      ? `http://localhost:3000/estacionamentos/${parking.id}`
-      : "http://localhost:3000/estacionamentos";
-    const method = parking.id ? "PUT" : "POST";
+    const payload = {
+      ...currentParking,
+      capacidade: Number(currentParking.capacidade),
+      vagas_disponiveis:
+        currentParking.vagas_disponiveis === ''
+          ? Number(currentParking.capacidade)
+          : Number(currentParking.vagas_disponiveis),
+      latitude:
+        currentParking.latitude === '' ? undefined : Number(currentParking.latitude),
+      longitude:
+        currentParking.longitude === ''
+          ? undefined
+          : Number(currentParking.longitude),
+    };
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parking),
-      });
-      if (response.ok) {
-        fetchParkings(); // Atualiza a lista de estacionamentos
-        setShowParkingForm(false); // Fecha o modal
-        setCurrentParking({}); // Limpa o formulário
+      if (currentParking.id) {
+        await estacionamentosApi.update(currentParking.id, payload);
+      } else {
+        await estacionamentosApi.create(payload);
       }
+      setShowParkingForm(false);
+      setCurrentParking(emptyParking);
+      await fetchParkings();
+      setStatus('Estacionamento salvo.');
     } catch (error) {
-      console.error("Erro ao salvar estacionamento:", error);
+      setStatus(error.response?.data?.message || 'Erro ao salvar estacionamento.');
     }
   };
 
-  // Função para adicionar/editar vaga
-  const handleSaveSpot = async (spot) => {
-    const url = spot.id
-      ? `http://localhost:3000/vagas/${spot.id}`
-      : "http://localhost:3000/vagas";
-    const method = spot.id ? "PATCH" : "POST";
+  const handleSaveSpot = async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      ...currentSpot,
+      numero: Number(currentSpot.numero),
+      id_estacionamento: selectedParking.id,
+    };
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...spot, id_estacionamento: selectedParking.id }),
-      });
-      if (response.ok) {
-        fetchSpots(selectedParking.id); // Atualiza a lista de vagas
-        setShowSpotForm(false); // Fecha o modal
-        setCurrentSpot({}); // Limpa o formulário
+      if (currentSpot.id) {
+        await vagasApi.update(currentSpot.id, payload);
+      } else {
+        await vagasApi.create(payload);
       }
+      setShowSpotForm(false);
+      setCurrentSpot(emptySpot);
+      await fetchSpots(selectedParking.id);
+      setStatus('Vaga salva.');
     } catch (error) {
-      console.error("Erro ao salvar vaga:", error);
+      setStatus(error.response?.data?.message || 'Erro ao salvar vaga.');
     }
   };
 
-  // Função para excluir estacionamento
   const handleDeleteParking = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/estacionamentos/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        fetchParkings(); // Atualiza a lista de estacionamentos
-      }
+      await estacionamentosApi.remove(id);
+      await fetchParkings();
+      setSelectedParking(null);
+      setStatus('Estacionamento removido.');
     } catch (error) {
-      console.error("Erro ao excluir estacionamento:", error);
+      setStatus(error.response?.data?.message || 'Erro ao remover estacionamento.');
     }
   };
 
-  // Função para excluir vaga
   const handleDeleteSpot = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/vagas/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        fetchSpots(selectedParking.id); // Atualiza a lista de vagas
-      }
+      await vagasApi.remove(id);
+      await fetchSpots(selectedParking.id);
+      setStatus('Vaga removida.');
     } catch (error) {
-      console.error("Erro ao excluir vaga:", error);
+      setStatus(error.response?.data?.message || 'Erro ao remover vaga.');
     }
   };
 
   return (
     <div className="parking-management">
-      {/* Incluindo o Header */}
-      <Header /> {/* O Header vai aparecer acima de todo o conteúdo */}
+      <Header />
 
-      {/* Botão para voltar ao Admin Dashboard */}
-      <button
-        className="back-button"
-        onClick={() => navigate("/admin-dashboard")} // Redireciona para o dashboard
-      >
-        Voltar ao Admin Dashboard
-      </button>
-
-      <h1>Gerenciamento de Estacionamentos e Vagas</h1>
-
-      {/* Seção de Estacionamentos */}
-      <div className="parking-section">
-        <h2>Estacionamentos</h2>
-        <button onClick={() => { setShowParkingForm(true); setCurrentParking({}); }}>
-          Adicionar Estacionamento
+      <main className="parking-management-shell">
+        <button className="back-button" onClick={() => navigate('/admin-dashboard')}>
+          Voltar ao dashboard
         </button>
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Localização</th>
-              <th>Capacidade</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {parkings.map((parking) => (
-              <tr key={parking.id}>
-                <td>{parking.nome}</td>
-                <td>{parking.localizacao}</td>
-                <td>{parking.capacidade}</td>
-                <td>
-                  <button
-                    onClick={() => {
-                      setCurrentParking(parking);
-                      setShowParkingForm(true);
-                    }}
-                  >
-                    Editar
-                  </button>
-                  <button onClick={() => handleDeleteParking(parking.id)}>Excluir</button>
-                  <button onClick={() => setSelectedParking(parking)}>Ver Vagas</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
-      {/* Seção de Vagas */}
-      {selectedParking && (
-        <div className="spot-section">
-          <h2>Vagas do Estacionamento: {selectedParking.nome}</h2>
-          <button onClick={() => { setShowSpotForm(true); setCurrentSpot({}); }}>
-            Adicionar Vaga
-          </button>
+        <h1>Estacionamentos e vagas</h1>
+        {status && <p className="status-message">{status}</p>}
+
+        <section className="parking-section">
+          <div className="section-header">
+            <h2>Estacionamentos</h2>
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentParking(emptyParking);
+                setShowParkingForm(true);
+              }}
+            >
+              Adicionar estacionamento
+            </button>
+          </div>
           <table>
             <thead>
               <tr>
-                <th>Número</th>
-                <th>Status</th>
-                <th>Tipo</th>
-                <th>Reservada</th>
-                <th>Ações</th>
+                <th>Nome</th>
+                <th>Endereco</th>
+                <th>Capacidade</th>
+                <th>Livres</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody>
-              {spots.map((spot) => (
-                <tr key={spot.id}>
-                  <td>{spot.numero}</td>
-                  <td>{spot.status}</td>
-                  <td>{spot.tipo}</td>
-                  <td>{spot.reservada ? "Sim" : "Não"}</td>
+              {parkings.map((parking) => (
+                <tr key={parking.id}>
+                  <td>{parking.nome}</td>
+                  <td>{parking.localizacao}</td>
+                  <td>{parking.capacidade}</td>
+                  <td>{parking.vagas_disponiveis}</td>
                   <td>
+                    <button type="button" onClick={() => setSelectedParking(parking)}>
+                      Vagas
+                    </button>
                     <button
+                      type="button"
                       onClick={() => {
-                        setCurrentSpot(spot);
-                        setShowSpotForm(true);
+                        setCurrentParking(parking);
+                        setShowParkingForm(true);
                       }}
                     >
                       Editar
                     </button>
-                    <button onClick={() => handleDeleteSpot(spot.id)}>Excluir</button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteParking(parking.id)}
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </section>
 
-      {/* Modal do Formulário de Estacionamento */}
-      {showParkingForm && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>{currentParking.id ? "Editar Estacionamento" : "Adicionar Estacionamento"}</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveParking(currentParking);
-              }}
-            >
-              <label>
-                Nome:
-                <input
-                  type="text"
-                  value={currentParking.nome || ""}
-                  onChange={(e) =>
-                    setCurrentParking({ ...currentParking, nome: e.target.value })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                Localização:
-                <input
-                  type="text"
-                  value={currentParking.localizacao || ""}
-                  onChange={(e) =>
-                    setCurrentParking({ ...currentParking, localizacao: e.target.value })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                Capacidade:
-                <input
-                  type="number"
-                  value={currentParking.capacidade || ""}
-                  onChange={(e) =>
-                    setCurrentParking({ ...currentParking, capacidade: e.target.value })
-                  }
-                  required
-                />
-              </label>
-              <button type="submit">Salvar</button>
-              <button type="button" onClick={() => setShowParkingForm(false)}>
-                Cancelar
+        {selectedParking && (
+          <section className="spot-section">
+            <div className="section-header">
+              <h2>Vagas: {selectedParking.nome}</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentSpot(emptySpot);
+                  setShowSpotForm(true);
+                }}
+              >
+                Adicionar vaga
               </button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Numero</th>
+                  <th>Status</th>
+                  <th>Tipo</th>
+                  <th>Reservada</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {spots.map((spot) => (
+                  <tr key={spot.id}>
+                    <td>{spot.numero}</td>
+                    <td>{spot.status}</td>
+                    <td>{spot.tipo}</td>
+                    <td>{spot.reservada ? 'Sim' : 'Nao'}</td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrentSpot(spot);
+                          setShowSpotForm(true);
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button type="button" onClick={() => handleDeleteSpot(spot.id)}>
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
+        {showParkingForm && (
+          <div className="modal">
+            <form className="modal-content" onSubmit={handleSaveParking}>
+              <h3>{currentParking.id ? 'Editar' : 'Adicionar'} estacionamento</h3>
+              <label>
+                Nome
+                <input
+                  value={currentParking.nome || ''}
+                  onChange={(event) =>
+                    setCurrentParking({ ...currentParking, nome: event.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Endereco
+                <input
+                  value={currentParking.localizacao || ''}
+                  onChange={(event) =>
+                    setCurrentParking({
+                      ...currentParking,
+                      localizacao: event.target.value,
+                    })
+                  }
+                  required
+                />
+              </label>
+              <div className="form-grid">
+                <label>
+                  Latitude
+                  <input
+                    type="number"
+                    step="any"
+                    value={currentParking.latitude || ''}
+                    onChange={(event) =>
+                      setCurrentParking({
+                        ...currentParking,
+                        latitude: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Longitude
+                  <input
+                    type="number"
+                    step="any"
+                    value={currentParking.longitude || ''}
+                    onChange={(event) =>
+                      setCurrentParking({
+                        ...currentParking,
+                        longitude: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="form-grid">
+                <label>
+                  Capacidade
+                  <input
+                    type="number"
+                    value={currentParking.capacidade || ''}
+                    onChange={(event) =>
+                      setCurrentParking({
+                        ...currentParking,
+                        capacidade: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  Vagas livres
+                  <input
+                    type="number"
+                    value={currentParking.vagas_disponiveis || ''}
+                    onChange={(event) =>
+                      setCurrentParking({
+                        ...currentParking,
+                        vagas_disponiveis: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <label>
+                Categoria
+                <input
+                  value={currentParking.categoria || ''}
+                  onChange={(event) =>
+                    setCurrentParking({
+                      ...currentParking,
+                      categoria: event.target.value,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Imagem URL
+                <input
+                  value={currentParking.imagemUrl || ''}
+                  onChange={(event) =>
+                    setCurrentParking({
+                      ...currentParking,
+                      imagemUrl: event.target.value,
+                    })
+                  }
+                />
+              </label>
+              <div className="modal-actions">
+                <button type="submit">Salvar</button>
+                <button type="button" onClick={() => setShowParkingForm(false)}>
+                  Cancelar
+                </button>
+              </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Modal do Formulário de Vaga */}
-      {showSpotForm && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>{currentSpot.id ? "Editar Vaga" : "Adicionar Vaga"}</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveSpot(currentSpot);
-              }}
-            >
+        {showSpotForm && (
+          <div className="modal">
+            <form className="modal-content" onSubmit={handleSaveSpot}>
+              <h3>{currentSpot.id ? 'Editar' : 'Adicionar'} vaga</h3>
               <label>
-                Número:
+                Numero
                 <input
                   type="number"
-                  value={currentSpot.numero || ""}
-                  onChange={(e) =>
-                    setCurrentSpot({ ...currentSpot, numero: e.target.value })
+                  value={currentSpot.numero || ''}
+                  onChange={(event) =>
+                    setCurrentSpot({ ...currentSpot, numero: event.target.value })
                   }
                   required
                 />
               </label>
               <label>
-                Status:
+                Status
                 <select
-                  value={currentSpot.status || "disponivel"}
-                  onChange={(e) =>
-                    setCurrentSpot({ ...currentSpot, status: e.target.value })
+                  value={currentSpot.status || 'disponivel'}
+                  onChange={(event) =>
+                    setCurrentSpot({ ...currentSpot, status: event.target.value })
                   }
-                  required
                 >
-                  <option value="disponivel">Disponível</option>
+                  <option value="disponivel">Disponivel</option>
                   <option value="ocupada">Ocupada</option>
                 </select>
               </label>
               <label>
-                Tipo:
+                Tipo
                 <select
-                  value={currentSpot.tipo || "carro"}
-                  onChange={(e) =>
-                    setCurrentSpot({ ...currentSpot, tipo: e.target.value })
+                  value={currentSpot.tipo || 'carro'}
+                  onChange={(event) =>
+                    setCurrentSpot({ ...currentSpot, tipo: event.target.value })
                   }
-                  required
                 >
                   <option value="carro">Carro</option>
                   <option value="moto">Moto</option>
                 </select>
               </label>
-              <label>
-                Reservada:
+              <label className="checkbox-row">
                 <input
                   type="checkbox"
-                  checked={currentSpot.reservada || false}
-                  onChange={(e) =>
-                    setCurrentSpot({ ...currentSpot, reservada: e.target.checked })
+                  checked={Boolean(currentSpot.reservada)}
+                  onChange={(event) =>
+                    setCurrentSpot({
+                      ...currentSpot,
+                      reservada: event.target.checked,
+                    })
                   }
                 />
+                Reservada
               </label>
-              <button type="submit">Salvar</button>
-              <button type="button" onClick={() => setShowSpotForm(false)}>
-                Cancelar
-              </button>
+              <div className="modal-actions">
+                <button type="submit">Salvar</button>
+                <button type="button" onClick={() => setShowSpotForm(false)}>
+                  Cancelar
+                </button>
+              </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 };

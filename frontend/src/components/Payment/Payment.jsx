@@ -1,134 +1,132 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
+import Header from '../Layout/Header';
+import { pagamentosApi, usuariosApi } from '../../services/api';
 import './Payment.css';
 
+const formatMoney = (value) =>
+  Number(value || 0).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+
 const Payment = () => {
-  const [paymentMethod, setPaymentMethod] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const userId = localStorage.getItem('userId');
+  const { reservaId, valor, id_vaga: idVaga, planoDescricao } = location.state || {};
+  const [paymentMethod, setPaymentMethod] = useState('PIX');
+  const [status, setStatus] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  // Pegando os dados da reserva e plano de tarifação
-  const { id_vaga, valor, id_usuario, plano_id } = location.state || {};
-
-  // Exibindo os dados da reserva e plano
-  const planoDescricao = location.state?.plano_descricao || 'Plano não selecionado';
-
-  const handlePaymentChange = (event) => {
-    setPaymentMethod(event.target.value);
-  };
-
-  // 📌 CONFIRMAR PAGAMENTO
   const handleConfirm = async () => {
-    if (!paymentMethod) {
-      alert('Por favor, escolha uma forma de pagamento.');
+    if (!reservaId) {
+      setStatus('Reserva nao encontrada. Volte e crie a reserva novamente.');
       return;
     }
 
     try {
-      // 1. Cria a reserva
-      const dataReserva = new Date().toISOString(); // Data e hora atuais
-      const dataFim = null; // Data de fim (pode ser nula ou uma data futura)
-
-      const reservaResponse = await axios.post('http://localhost:3000/reservas', {
-        id_vaga: id_vaga,    // ID da vaga
-        id_usuario: id_usuario,  // ID do usuário recuperado do localStorage
-        valor: valor,        // Valor da vaga
-        dataReserva: dataReserva, // Data e hora da reserva
-        dataFim: dataFim,   // Data de fim (pode ser nulo)
-        plano_id: plano_id  // ID do plano de tarifação
-      });
-
-      const reservaId = reservaResponse.data.id; // ID da reserva criada
-      console.log('Reserva criada com sucesso. ID:', reservaId);
-
-      // 2. Recupera os detalhes da reserva
-      const detalhesReservaResponse = await axios.get(`http://localhost:3000/reservas/${reservaId}`);
-      const detalhesReserva = detalhesReservaResponse.data;
-      console.log('Detalhes da reserva:', detalhesReserva);
-
-      // 3. Registra o pagamento
-      const pagamentoResponse = await axios.post('http://localhost:3000/pagamentos', {
-        id_reserva: reservaId, // ID da reserva
+      setSubmitting(true);
+      await pagamentosApi.create({
+        id_reserva: reservaId,
         metodo_pagamento: paymentMethod,
-        valor_pago: valor, // Valor do pagamento
-        data_hora: new Date().toISOString(), // Data e hora do pagamento
+        valor_pago: Number(valor || 0),
+        data_hora: new Date().toISOString(),
       });
 
-      console.log('Pagamento registrado:', pagamentoResponse.data);
-
-      // 4. Reserva a vaga
-      const reservaVagaResponse = await axios.post(`http://localhost:3000/vagas/${id_vaga}/reservar`);
-      console.log('Vaga reservada:', reservaVagaResponse.data);
-
-      alert('Pagamento e reserva realizados com sucesso!');
-      navigate('/success'); // Redireciona para a página de sucesso
+      setStatus('Pagamento registrado com sucesso.');
+      navigate('/client-dashboard', { replace: true });
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
-      alert('Erro ao processar pagamento. Tente novamente.');
+      setStatus(error.response?.data?.message || 'Erro ao registrar pagamento.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // 📌 VOLTAR E LIBERAR A VAGA SE CANCELAR O PAGAMENTO
-  const handleBack = async () => {
-    if (id_vaga) {
-      try {
-        await axios.post(`http://localhost:3000/vagas/${id_vaga}/liberar`);
-        alert('Vaga liberada com sucesso.');
-      } catch (error) {
-        console.error('Erro ao liberar a vaga:', error);
-        alert('Erro ao liberar a vaga. Tente novamente.');
+  const handleCancel = async () => {
+    try {
+      if (reservaId && userId) {
+        await usuariosApi.cancelarReserva(userId, { id_reserva: reservaId });
       }
+    } catch {
+      setStatus('Nao foi possivel cancelar a reserva automaticamente.');
+      return;
     }
 
-    navigate(-1); // Voltar para a tela anterior
+    navigate(-1);
   };
 
   return (
-    <div className="payment-container">
-      <h2>Escolha a forma de Pagamento:</h2>
-      
-      {/* Exibindo informações da reserva */}
-      <div className="reservation-details">
-        <p><strong>Vaga ID:</strong> {id_vaga}</p>
-        <p><strong>Valor da Reserva:</strong> R$ {valor}</p>
-        <p><strong>Plano Selecionado:</strong> {planoDescricao}</p>
-      </div>
+    <div className="payment-page">
+      <Header />
 
-      <div className="payment-methods">
-        <label className="payment-option">
-          <input
-            type="radio"
-            value="PIX"
-            checked={paymentMethod === 'PIX'}
-            onChange={handlePaymentChange}
-          />
-          <span>Pagamento por PIX</span>
-        </label>
-        <label className="payment-option">
-          <input
-            type="radio"
-            value="Cartão de Crédito"
-            checked={paymentMethod === 'Cartão de Crédito'}
-            onChange={handlePaymentChange}
-          />
-          Cartão de Crédito
-        </label>
-        <label className="payment-option">
-          <input
-            type="radio"
-            value="Boleto Bancário"
-            checked={paymentMethod === 'Boleto Bancário'}
-            onChange={handlePaymentChange}
-          />
-          Boleto Bancário
-        </label>
-      </div>
-      
-      <div className="buttons">
-        <button onClick={handleConfirm} className="confirm-button">Confirmar Pagamento</button>
-        <button onClick={handleBack} className="back-button">Cancelar e Voltar</button>
-      </div>
+      <main className="payment-shell">
+        <section className="payment-card">
+          <p className="eyebrow">Pagamento</p>
+          <h2>Confirmar pagamento da reserva</h2>
+
+          {status && <div className="payment-alert">{status}</div>}
+
+          <div className="payment-summary">
+            <div>
+              <span>Reserva</span>
+              <strong>#{reservaId || '-'}</strong>
+            </div>
+            <div>
+              <span>Vaga</span>
+              <strong>{idVaga || '-'}</strong>
+            </div>
+            <div>
+              <span>Plano</span>
+              <strong>{planoDescricao || '-'}</strong>
+            </div>
+            <div>
+              <span>Total</span>
+              <strong>{formatMoney(valor)}</strong>
+            </div>
+          </div>
+
+          <fieldset className="payment-methods">
+            <legend>Metodo de pagamento</legend>
+            <label>
+              <input
+                type="radio"
+                value="PIX"
+                checked={paymentMethod === 'PIX'}
+                onChange={(event) => setPaymentMethod(event.target.value)}
+              />
+              PIX
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="cartao_credito"
+                checked={paymentMethod === 'cartao_credito'}
+                onChange={(event) => setPaymentMethod(event.target.value)}
+              />
+              Cartao de credito
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="boleto"
+                checked={paymentMethod === 'boleto'}
+                onChange={(event) => setPaymentMethod(event.target.value)}
+              />
+              Boleto
+            </label>
+          </fieldset>
+
+          <div className="payment-actions">
+            <button type="button" onClick={handleConfirm} disabled={submitting}>
+              {submitting ? 'Registrando...' : 'Confirmar pagamento'}
+            </button>
+            <button type="button" className="secondary-button" onClick={handleCancel}>
+              Cancelar reserva
+            </button>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

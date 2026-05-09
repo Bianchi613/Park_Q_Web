@@ -1,153 +1,270 @@
 .admin-dashboard {
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    background-color: #f9fafb;
-    min-height: 100vh;
-    display: flex;
+  min-height: 100vh;
+  background: #eef2f6;
+  color: #172033;
+}
+
+.admin-shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.admin-hero,
+.admin-tabs,
+.admin-kpis > div,
+.admin-card {
+  background: #ffffff;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+}
+
+.admin-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  margin-bottom: 14px;
+}
+
+.admin-hero h2,
+.admin-card h3 {
+  margin: 0;
+  color: #101827;
+}
+
+.admin-hero p,
+.admin-card p,
+.admin-row span,
+.people-grid span,
+.people-grid small,
+.spot-card span,
+.spot-card small {
+  color: #5d6b7d;
+}
+
+.admin-actions,
+.section-heading {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-alert {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-kpis > div {
+  padding: 16px;
+}
+
+.admin-kpis span {
+  color: #5d6b7d;
+}
+
+.admin-kpis strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.55rem;
+  color: #101827;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+
+.admin-tabs button {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #d5deea;
+  white-space: nowrap;
+}
+
+.admin-tabs button.active {
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #0f766e;
+}
+
+.operation-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.map-panel {
+  min-height: 410px;
+  overflow: hidden;
+  border: 1px solid #c8d3e0;
+  border-radius: 8px;
+}
+
+.map-panel .leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 410px;
+}
+
+.admin-card {
+  padding: 18px;
+}
+
+.admin-card label {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  color: #334155;
+}
+
+.admin-card input,
+.admin-card select,
+.admin-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #c8d3e0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #172033;
+}
+
+.admin-card textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.split-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.split-metrics strong {
+  padding: 12px;
+  border-radius: 8px;
+  background: #eef6ff;
+}
+
+.report-box {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.section-heading {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.spot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.spot-card {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #ecfdf5;
+}
+
+.spot-card.ocupada {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.admin-table {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) auto auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.admin-row > div {
+  display: grid;
+  gap: 4px;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.people-grid article {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.notification-workspace {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.notification-form button {
+  margin-top: 14px;
+}
+
+@media (max-width: 980px) {
+  .admin-hero,
+  .operation-layout,
+  .notification-workspace,
+  .admin-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-hero {
+    align-items: stretch;
     flex-direction: column;
-    gap: 20px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
   }
-  
-  .dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+
+  .admin-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
-  .dashboard-header h1 {
-    font-size: 24px;
-    color: #333;
+}
+
+@media (max-width: 560px) {
+  .admin-kpis {
+    grid-template-columns: 1fr;
   }
-  
-  .back-button {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .back-button:hover {
-    background-color: #5a6268;
-  }
-  
-  .vagas-container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .vagas-scroll {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-  }
-  
-  .vaga-card {
-    flex: 0 0 auto;
-    width: 150px;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    background-color: #e9ecef;
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
-  
-  .vaga-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .vaga-card.ocupada {
-    background-color: #ffe3e3;
-  }
-  
-  .vaga-card.reservada {
-    background-color: #fff3cd;
-  }
-  
-  .vaga-numero {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .vaga-tipo,
-  .vaga-status {
-    font-size: 14px;
-    color: #555;
-  }
-  
-  .middle-section {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  
-  .estacionamento-info,
-  .relatorio-container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    flex: 1;
-  }
-  
-  .info-card,
-  .relatorio-card {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  
-  .gerar-relatorio-button {
-    background-color: #030303;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%;
-    transition: background-color 0.3s;
-  }
-  
-  .gerar-relatorio-button:hover {
-    background-color: #070707;
-  }
-  
-  .buttons-container {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  
-  .nav-button {
-    background-color: #090909;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .nav-button:hover {
-    background-color: #4b4b4b;
-  }
-  
-  .loading-message,
-  .error-message {
-    text-align: center;
-    font-size: 16px;
-    color: #dc3545;
-  }
+}

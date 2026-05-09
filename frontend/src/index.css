@@ -3,7 +3,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light;
   color: #333; /* Ajustado para melhor legibilidade */
   background-color:white; /* Cor do fundo conforme o design */
 
@@ -29,7 +29,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color:white; /* Cor de fundo suave */
-  text-align: center;
+  text-align: left;
 }
 
 h1 {

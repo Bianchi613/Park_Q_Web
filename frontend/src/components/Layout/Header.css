@@ -1,92 +1,93 @@
-:root {
-  --color-primary: #fefefe; /* Cor principal do header */
-  --color-secondary: #fefefe; /* Cor do fundo secundário */
-  --color-button-bg: #6b6969; /* Cor de fundo dos botões */
-  --color-button-text: #fff; /* Cor do texto dos botões */
-  --color-hover-bg: #555; /* Cor de fundo ao passar o mouse */
-  --shadow: 0 4px 10px rgba(114, 114, 114, 0.1); /* Sombra suave */
-}
-
 .header {
-  width: 100%;
-  background-color: var(--color-primary);
-  color: var(--color-secondary);
-  box-shadow: var(--shadow);
-  padding: 15px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 1000;
+  width: 100%;
+  background: #000000;
+  border-bottom: 0;
 }
 
 .header-content {
+  width: min(1440px, calc(100% - 32px));
+  min-height: 72px;
+  margin: 0 auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: var(--color-secondary);
-  margin: 0;
-  cursor: pointer;
-  text-transform: uppercase; /* Deixa o nome em maiúsculas */
-  letter-spacing: 2px; /* Adiciona um espaçamento entre as letras */
+.brand-button {
+  padding: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.brand-button:hover {
+  background: transparent;
+  opacity: 0.75;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.header-nav-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.header-nav-tabs button {
+  background: transparent;
+  color: #ffffff;
+  border-radius: 0;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
+.header-nav-tabs button.active {
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
 }
 
 .header-buttons {
   display: flex;
-  gap: 15px;
+  gap: 10px;
 }
 
-button {
-  background-color: var(--color-button-bg);
-  color: var(--color-button-text);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+.profile-button {
+  background: #1f2937;
 }
 
-button:hover {
-  background-color: var(--color-hover-bg);
-  transform: scale(1.05); /* Efeito de zoom suave */
+.logout-button {
+  background: #ffffff;
+  color: #000000;
 }
 
-button:focus {
-  outline: none;
-}
-
-button.profile-button {
-  background-color: #282828; /* Cor específica para o botão de perfil */
-}
-
-button.logout-button {
-  background-color: #e7796d; /* Cor específica para o botão de logout */
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-  .header {
-    padding: 15px;
+@media (max-width: 520px) {
+  .header-content {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px 0;
   }
 
-  h1 {
-    font-size: 2rem;
+  .header-center {
+    justify-content: flex-start;
   }
 
   .header-buttons {
-    gap: 10px;
+    width: 100%;
   }
 
-  button {
-    font-size: 0.9rem;
-    padding: 8px 15px;
+  .header-buttons button {
+    flex: 1;
   }
 }

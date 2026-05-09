@@ -109,6 +109,14 @@ input:focus {
   text-decoration: underline;
 }
 
+.visitor-button {
+  width: 100%;
+  max-width: 250px;
+  margin: 0 auto;
+  background: #eeeeee;
+  color: #111111;
+}
+
 /* Responsividade: Ajustes para telas menores */
 @media (max-width: 600px) {
   .login-container {
