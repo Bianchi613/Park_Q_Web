@@ -25,9 +25,15 @@ DATABASE_MAINTENANCE_DB=postgres
 
 NODE_ENV=development
 PORT=3000
+SEQUELIZE_SYNCHRONIZE=false
 
 JWT_SECRET=sua_chave_secreta
 JWT_EXPIRES_IN=1d
+
+TEST_USER_PASSWORD=12345
+SEED_ADMIN_PASSWORD=admin123
+SEED_CLIENT_PASSWORD=cliente123
+SEED_VISITOR_PASSWORD=visitor123
 
 GEOCODING_PROVIDER=nominatim
 GEOCODING_USER_AGENT=park-q-web/1.0
@@ -42,6 +48,8 @@ RESERVA_MONITOR_INTERVAL_MS=60000
 ```bash
 npm install
 npm run db:create
+npm run db:migrate
+npm run db:seed
 npm run start:dev
 ```
 
@@ -88,6 +96,10 @@ Os controllers usam DTOs com `class-validator` e `ValidationPipe` global. O back
 npm run db:create
 npm run start
 npm run start:dev
+npm run db:migrate
+npm run db:setup
+npm run db:seed
+npm run db:seed:undo
 npm run build
 npm run lint
 npm run test
@@ -96,9 +108,9 @@ npm run test:e2e
 
 ## Banco
 
-O schema de referencia fica em `backend/parkq.sql`. Em desenvolvimento, o Sequelize usa `synchronize` quando `NODE_ENV` nao e `production`.
+As migrations em `backend/migrations/` sao a fonte oficial do schema. O arquivo `backend/parkq.sql` fica apenas como referencia/manual.
 
-Para producao, use migrations e mantenha `NODE_ENV=production`.
+Por padrao, `synchronize` fica desligado mesmo em desenvolvimento. Para ligar temporariamente, use `SEQUELIZE_SYNCHRONIZE=true`. Para producao, use migrations e mantenha `NODE_ENV=production` e `SEQUELIZE_SYNCHRONIZE=false`.
 
 Comandos:
 
@@ -106,7 +118,28 @@ Comandos:
 npm run db:migrate
 npm run db:migrate:undo
 npm run db:migrate:undo:all
+npm run db:setup
+npm run db:seed
+npm run db:seed:undo
 ```
+
+`npm run db:setup` cria o banco, aplica migrations e roda os seeders. O seeder inicial cria:
+
+| Perfil | Email | Senha |
+| --- | --- | --- |
+| `ADMIN` | `admin@parkq.local` | `admin123` |
+| `CLIENT` | `cliente@parkq.local` | `cliente123` |
+| `VISITOR` | `visitor@parkq.local` | `visitor123` |
+
+As senhas podem ser sobrescritas por `SEED_ADMIN_PASSWORD`, `SEED_CLIENT_PASSWORD` e `SEED_VISITOR_PASSWORD`.
+
+## Concorrencia em reservas
+
+Ao criar uma reserva, o backend usa transacao no PostgreSQL e trava a linha da vaga antes de gravar. A sequencia e: travar vaga, confirmar disponibilidade, verificar conflito de horario, criar reserva e marcar a vaga como ocupada. Isso evita que duas requisicoes simultaneas reservem a mesma vaga.
+
+## Swagger
+
+Swagger fica em `http://localhost:3000/api/docs`. Os principais DTOs possuem exemplos, enums e descricoes para facilitar testes manuais pela propria documentacao.
 
 ## Monitoramento automatico
 

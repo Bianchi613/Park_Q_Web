@@ -68,17 +68,27 @@ export class VagaRepository {
   }
 
   async reservar(id: number, idReserva?: number): Promise<Vaga> {
-    const vaga = await this.findById(id);
+    const [updatedCount] = await this.vagaModel.update(
+      {
+        reservada: true,
+        status: 'ocupada',
+        id_reserva: idReserva ?? null,
+      },
+      {
+        where: {
+          id,
+          reservada: false,
+          status: 'disponivel',
+        },
+      },
+    );
 
-    if (vaga.reservada || vaga.status !== 'disponivel') {
+    if (updatedCount === 0) {
+      await this.findById(id);
       throw new ConflictException(`A vaga com ID ${id} nao esta disponivel.`);
     }
 
-    await vaga.update({
-      reservada: true,
-      status: 'ocupada',
-      id_reserva: idReserva ?? vaga.id_reserva,
-    });
+    const vaga = await this.findById(id);
     await this.syncVagasDisponiveis(vaga.id_estacionamento);
     return vaga;
   }

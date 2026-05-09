@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { Transaction } from 'sequelize';
 import { NotificacaoService } from '../notificacao/notificacao.service';
 import { OperacaoService } from '../operacao/operacao.service';
 import { PlanoTarifacaoService } from '../plano-tarifacao/plano-tarifacao.service';
@@ -35,8 +36,38 @@ export class ReservaService {
   async createReserva(data: any): Promise<Reserva> {
     const normalized = this.normalizePayload(data);
     await this.preencherValorAutomaticamente(normalized);
-    await this.checkConflito(normalized);
-    const reserva = await this.reservaRepository.createReserva(normalized);
+
+    let idEstacionamento: number | undefined;
+    const reserva = await this.reservaRepository.runInTransaction(
+      async (transaction) => {
+        const vaga = await this.reservaRepository.findVagaForUpdate(
+          Number(normalized.id_vaga),
+          transaction,
+        );
+
+        this.reservaRepository.ensureVagaDisponivel(vaga);
+        await this.checkConflito(normalized, undefined, transaction);
+
+        const createdReserva = await this.reservaRepository.createReserva(
+          normalized,
+          transaction,
+        );
+
+        await this.reservaRepository.ocuparVaga(
+          vaga,
+          createdReserva.id,
+          transaction,
+        );
+        idEstacionamento = vaga.id_estacionamento;
+
+        return createdReserva;
+      },
+    );
+
+    if (idEstacionamento) {
+      await this.vagaService.syncVagasDisponiveis(idEstacionamento);
+    }
+
     await this.operacaoService.registrarReservaCriada({
       id: reserva.id,
       id_usuario: reserva.id_usuario,
@@ -234,7 +265,11 @@ export class ReservaService {
     data.valor = tarifa.valor;
   }
 
-  private async checkConflito(data: Partial<Reserva>, reservaId?: number) {
+  private async checkConflito(
+    data: Partial<Reserva>,
+    reservaId?: number,
+    transaction?: Transaction,
+  ) {
     if (!data.id_vaga || !data.data_reserva || !data.data_fim) {
       return;
     }
@@ -253,6 +288,7 @@ export class ReservaService {
       dataInicio,
       dataFim,
       reservaId,
+      transaction,
     );
 
     if (conflito) {

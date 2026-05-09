@@ -33,4 +33,8 @@ export class VagaService {
   async liberar(id: number): Promise<Vaga> {
     return this.vagaRepository.liberar(id);
   }
+
+  async syncVagasDisponiveis(idEstacionamento: number): Promise<void> {
+    return this.vagaRepository.syncVagasDisponiveis(idEstacionamento);
+  }
 }

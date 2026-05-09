@@ -28,7 +28,9 @@ import { VagaModule } from './vaga/vaga.module';
         password: configService.getOrThrow<string>('DATABASE_PASSWORD'),
         database: configService.getOrThrow<string>('DATABASE_NAME'),
         autoLoadModels: true,
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
+        synchronize:
+          configService.get<string>('NODE_ENV') !== 'production' &&
+          configService.get<string>('SEQUELIZE_SYNCHRONIZE') === 'true',
         logging:
           configService.get<string>('NODE_ENV') !== 'production'
             ? console.log

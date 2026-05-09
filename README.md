@@ -76,6 +76,7 @@ park-q-web/
       vaga/
     config/
     migrations/
+    seeders/
     parkq.sql
 
   frontend/
@@ -102,11 +103,15 @@ DATABASE_MAINTENANCE_DB=postgres
 
 NODE_ENV=development
 PORT=3000
+SEQUELIZE_SYNCHRONIZE=false
 
 JWT_SECRET=sua_chave_secreta
 JWT_EXPIRES_IN=1d
 
 TEST_USER_PASSWORD=12345
+SEED_ADMIN_PASSWORD=admin123
+SEED_CLIENT_PASSWORD=cliente123
+SEED_VISITOR_PASSWORD=visitor123
 
 GEOCODING_PROVIDER=nominatim
 GEOCODING_USER_AGENT=park-q-web/1.0
@@ -209,6 +214,7 @@ No codigo NestJS, os metodos de negocio ficam nos `Services`. Os `Models` repres
 - `GET /estacionamentos/proximos` calcula distancia por latitude/longitude.
 - `Reserva` ganhou `status`: `ATIVA`, `CANCELADA`, `FINALIZADA`, `EXPIRADA`.
 - `ReservaService` calcula `valor` automaticamente quando recebe `id_plano`, `id_vaga`, `data_reserva` e `data_fim`.
+- A criacao de reserva trava a vaga em transacao no banco para evitar duas reservas simultaneas na mesma vaga.
 - `PlanoTarifacaoService` calcula tarifa por duracao real, cobra diaria acima de 24h e aplica desconto para moto.
 - `PagamentoService` registra pagamentos e dispara auditoria/notificacao.
 - `Operacao` virou trilha de auditoria real do sistema.
@@ -219,6 +225,8 @@ No codigo NestJS, os metodos de negocio ficam nos `Services`. Os `Models` repres
 - Controllers usam DTOs com `class-validator` e `ValidationPipe` global para validar payloads, converter tipos e bloquear campos desconhecidos.
 - `ReservaMonitorService` monitora reservas automaticamente em intervalo configuravel, notificando reservas perto do fim e expirando reservas vencidas.
 - Migrations Sequelize foram adicionadas para criar/atualizar o schema atual e o trigger de vagas disponiveis.
+- Seeders Sequelize foram adicionados para criar dados iniciais de desenvolvimento: estacionamento, plano, vagas e usuarios `ADMIN`, `CLIENT` e `VISITOR`.
+- Swagger recebeu exemplos, enums e descricoes nos principais DTOs.
 
 ## Principais endpoints da API
 
@@ -335,15 +343,16 @@ Operacoes:
 
 ## Banco de dados
 
-O backend usa PostgreSQL com Sequelize. A conexao principal fica em `backend/src/app.module.ts`. O arquivo `backend/config/config.js` existe para compatibilidade com Sequelize CLI/migrations.
+O backend usa PostgreSQL com Sequelize. A conexao principal fica em `backend/src/app.module.ts`. O arquivo `backend/config/config.js` existe para compatibilidade com Sequelize CLI, migrations e seeders.
 
 Arquivos relacionados:
 
 - `backend/parkq.sql`
 - `backend/migrations/`
+- `backend/seeders/`
 - `backend/config/config.js`
 
-Em desenvolvimento, `synchronize` fica ativo quando `NODE_ENV` nao e `production`, entao o Sequelize pode criar/ajustar tabelas automaticamente. O arquivo `parkq.sql` serve como referencia/manual do schema.
+As migrations sao a fonte oficial do schema. O arquivo `parkq.sql` fica apenas como referencia/manual. Por padrao, `synchronize` fica desligado mesmo em desenvolvimento; se precisar usar temporariamente, defina `SEQUELIZE_SYNCHRONIZE=true`.
 
 Para rodar migrations:
 
@@ -351,6 +360,23 @@ Para rodar migrations:
 cd backend
 npm run db:migrate
 ```
+
+Para criar schema e dados iniciais:
+
+```bash
+cd backend
+npm run db:setup
+```
+
+Contas criadas pelo seeder:
+
+| Perfil | Email | Senha |
+| --- | --- | --- |
+| `ADMIN` | `admin@parkq.local` | `admin123` |
+| `CLIENT` | `cliente@parkq.local` | `cliente123` |
+| `VISITOR` | `visitor@parkq.local` | `visitor123` |
+
+As senhas podem ser alteradas antes de rodar o seeder com `SEED_ADMIN_PASSWORD`, `SEED_CLIENT_PASSWORD` e `SEED_VISITOR_PASSWORD`.
 
 O monitor automatico de reservas usa:
 
@@ -371,6 +397,9 @@ Backend:
 npm run db:create
 npm run db:migrate
 npm run db:migrate:undo
+npm run db:setup
+npm run db:seed
+npm run db:seed:undo
 npm run start
 npm run start:dev
 npm run build
@@ -391,8 +420,8 @@ npm run preview
 ## Observacoes
 
 - Swagger fica em `http://localhost:3000/api/docs`.
-- O backend cria o banco `parkq` via `npm run db:create` antes de iniciar nos scripts `start` e `start:dev`.
+- O backend aplica `npm run db:migrate` antes de iniciar nos scripts `start` e `start:dev`.
 - Payloads invalidos retornam erro `400` por causa do `ValidationPipe` global.
 - Algumas telas do frontend esperam `token`, `userId` e `id_estacionamento` no `localStorage`.
 - Os arquivos em `frontend/src/services/` existem, mas parte da integracao HTTP ainda esta dentro dos componentes.
-- Em producao, prefira migrations em vez de `synchronize`.
+- Em producao, use migrations e mantenha `SEQUELIZE_SYNCHRONIZE=false`.

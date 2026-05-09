@@ -25,6 +25,15 @@ async function bootstrap() {
       'API para gerenciamento de estacionamentos, vagas, reservas, pagamentos e autenticacao JWT.',
     )
     .setVersion('1.0')
+    .addTag('Auth', 'Login e emissao de token JWT')
+    .addTag('Usuarios', 'Clientes, administradores e visitantes')
+    .addTag('Estacionamentos', 'Cadastro, geocoding, vagas e relatorios')
+    .addTag('Vagas', 'Cadastro, reserva e liberacao de vagas')
+    .addTag('Reservas', 'Reservas, cancelamento e monitoramento de tempo')
+    .addTag('Pagamentos', 'Registro e validacao de pagamentos')
+    .addTag('Notificacoes', 'Mensagens enviadas aos usuarios')
+    .addTag('Operacoes', 'Auditoria de acoes do sistema')
+    .addServer(`http://localhost:${port}`, 'Servidor local')
     .addBearerAuth({
       type: 'http',
       scheme: 'bearer',

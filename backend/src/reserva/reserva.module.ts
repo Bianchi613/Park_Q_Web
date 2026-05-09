@@ -3,6 +3,8 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { NotificacaoModule } from '../notificacao/notificacao.module';
 import { OperacaoModule } from '../operacao/operacao.module';
 import { PlanoTarifacaoModule } from '../plano-tarifacao/plano-tarifacao.module';
+import { Estacionamento } from '../estacionamento/estacionamento.model';
+import { Vaga } from '../vaga/vaga.model';
 import { VagaModule } from '../vaga/vaga.module';
 import { ReservaController } from './reserva.controller';
 import { Reserva } from './reserva.model';
@@ -12,7 +14,7 @@ import { ReservaService } from './reserva.service';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Reserva]),
+    SequelizeModule.forFeature([Reserva, Vaga, Estacionamento]),
     OperacaoModule,
     NotificacaoModule,
     PlanoTarifacaoModule,

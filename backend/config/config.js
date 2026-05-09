@@ -19,6 +19,7 @@ module.exports = {
     host: requiredEnv('DATABASE_HOST'),
     port: Number(requiredEnv('DATABASE_PORT')),
     dialect: 'postgres',
+    seederStorage: 'sequelize',
   },
   test: {
     username: requiredEnv('DATABASE_USER'),
@@ -27,6 +28,7 @@ module.exports = {
     host: requiredEnv('DATABASE_HOST'),
     port: Number(requiredEnv('DATABASE_PORT')),
     dialect: 'postgres',
+    seederStorage: 'sequelize',
   },
   production: {
     username: requiredEnv('DATABASE_USER'),
@@ -35,6 +37,7 @@ module.exports = {
     host: requiredEnv('DATABASE_HOST'),
     port: Number(requiredEnv('DATABASE_PORT')),
     dialect: 'postgres',
+    seederStorage: 'sequelize',
     logging: false,
   },
 };

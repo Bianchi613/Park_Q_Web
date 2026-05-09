@@ -111,10 +111,7 @@ export class UsuarioService {
         : {}),
     };
 
-    const reserva = await this.reservaService.createReserva(reservaPayload);
-
-    await this.vagaService.reservar(vaga.id, reserva.id);
-    return reserva;
+    return this.reservaService.createReserva(reservaPayload);
   }
 
   async cancelarReserva(id: number, data: any): Promise<{ message: string }> {
