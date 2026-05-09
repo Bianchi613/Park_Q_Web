@@ -22,6 +22,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreateNotificacaoDto } from './dto/create-notificacao.dto';
 import { Notificacao, NotificacaoTipo } from './notificacao.model';
 import { NotificacaoService } from './notificacao.service';
 
@@ -35,7 +36,7 @@ export class NotificacaoController {
   @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cria uma notificacao manual' })
-  async create(@Body() data: any): Promise<Notificacao> {
+  async create(@Body() data: CreateNotificacaoDto): Promise<Notificacao> {
     return this.notificacaoService.criar(data);
   }
 

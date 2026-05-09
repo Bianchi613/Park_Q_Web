@@ -18,12 +18,12 @@ export class PagamentoService {
     private readonly notificacaoService: NotificacaoService,
   ) {}
 
-  async createPagamento(data: Partial<Pagamento>): Promise<Pagamento> {
+  async createPagamento(data: any): Promise<Pagamento> {
     return this.registrarPagamento(data);
   }
 
   async createPagamentoAutorizado(
-    data: Partial<Pagamento>,
+    data: any,
     usuario: { id: number; role: string },
   ): Promise<Pagamento> {
     const payload = this.normalizePayload(data);
@@ -34,7 +34,7 @@ export class PagamentoService {
     return this.registrarPagamento(payload);
   }
 
-  async registrarPagamento(data: Partial<Pagamento>): Promise<Pagamento> {
+  async registrarPagamento(data: any): Promise<Pagamento> {
     const payload = this.normalizePayload(data);
     const reserva = await this.reservaService.findReservaById(
       payload.id_reserva,
@@ -82,10 +82,7 @@ export class PagamentoService {
     return pagamento;
   }
 
-  async updatePagamento(
-    id: number,
-    data: Partial<Pagamento>,
-  ): Promise<Pagamento> {
+  async updatePagamento(id: number, data: any): Promise<Pagamento> {
     return this.pagamentoRepository.update(
       id,
       this.normalizePayload(data, false),

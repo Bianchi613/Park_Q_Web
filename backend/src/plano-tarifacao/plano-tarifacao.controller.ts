@@ -20,6 +20,9 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CalcularTarifaDto } from './dto/calcular-tarifa.dto';
+import { CreatePlanoTarifacaoDto } from './dto/create-plano-tarifacao.dto';
+import { UpdatePlanoTarifacaoDto } from './dto/update-plano-tarifacao.dto';
 import { PlanoTarifacao } from './plano-tarifacao.model';
 import { PlanoTarifacaoService } from './plano-tarifacao.service';
 
@@ -65,7 +68,7 @@ export class PlanoTarifacaoController {
     },
   })
   async create(
-    @Body() planoTarifacaoData: Partial<PlanoTarifacao>,
+    @Body() planoTarifacaoData: CreatePlanoTarifacaoDto,
   ): Promise<PlanoTarifacao> {
     return this.planoTarifacaoService.create(planoTarifacaoData);
   }
@@ -78,7 +81,7 @@ export class PlanoTarifacaoController {
   @ApiParam({ name: 'id', description: 'ID do plano de tarifacao' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() planoTarifacaoData: Partial<PlanoTarifacao>,
+    @Body() planoTarifacaoData: UpdatePlanoTarifacaoDto,
   ): Promise<PlanoTarifacao> {
     return this.planoTarifacaoService.update(id, planoTarifacaoData);
   }
@@ -112,11 +115,7 @@ export class PlanoTarifacaoController {
   async calcularTarifa(
     @Param('id', ParseIntPipe) id: number,
     @Body()
-    {
-      tipoVaga,
-      duracao,
-      duracaoHoras,
-    }: { tipoVaga: string; duracao?: number; duracaoHoras?: number },
+    { tipoVaga, duracao, duracaoHoras }: CalcularTarifaDto,
   ) {
     return this.planoTarifacaoService.calcularTarifaDetalhada(
       tipoVaga,

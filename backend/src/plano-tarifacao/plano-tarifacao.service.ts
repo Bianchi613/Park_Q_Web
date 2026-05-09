@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PlanoTarifacaoRepository } from './plano-tarifacao.repository';
 import { PlanoTarifacao } from './plano-tarifacao.model';
 
@@ -27,21 +27,16 @@ export class PlanoTarifacaoService {
     return this.planoTarifacaoRepository.findOne(id);
   }
 
-  async create(
-    planoTarifacaoData: Partial<PlanoTarifacao>,
-  ): Promise<PlanoTarifacao> {
+  async create(planoTarifacaoData: any): Promise<PlanoTarifacao> {
     return this.planoTarifacaoRepository.create(
       this.normalizePayload(planoTarifacaoData),
     );
   }
 
-  async update(
-    id: number,
-    planoTarifacaoData: Partial<PlanoTarifacao>,
-  ): Promise<PlanoTarifacao> {
+  async update(id: number, planoTarifacaoData: any): Promise<PlanoTarifacao> {
     return this.planoTarifacaoRepository.update(
       id,
-      this.normalizePayload(planoTarifacaoData),
+      this.normalizePayload(planoTarifacaoData, false),
     );
   }
 
@@ -91,6 +86,7 @@ export class PlanoTarifacaoService {
 
   private normalizePayload(
     data: Partial<PlanoTarifacao> & Record<string, any>,
+    requireTaxaBase = true,
   ): Partial<PlanoTarifacao> {
     const normalized: Partial<PlanoTarifacao> = {
       ...data,
@@ -104,6 +100,13 @@ export class PlanoTarifacaoService {
     delete (normalized as any).taxaBase;
     delete (normalized as any).taxaHora;
     delete (normalized as any).taxaDiaria;
+
+    if (
+      requireTaxaBase &&
+      (normalized.taxa_base === undefined || normalized.taxa_base === null)
+    ) {
+      throw new BadRequestException('taxa_base ou taxaBase e obrigatoria.');
+    }
 
     return normalized;
   }

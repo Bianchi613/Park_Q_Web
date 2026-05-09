@@ -213,6 +213,7 @@ No codigo NestJS, os metodos de negocio ficam nos `Services`. Os `Models` repres
 - `monitorarTempo()` foi implementado para reservas; reservas expiradas podem ser marcadas como `EXPIRADA` e ter a vaga liberada.
 - Rotas sensiveis foram protegidas com JWT e `role` (`ADMIN` ou `CLIENT`).
 - Clientes autenticados so podem acessar seus proprios usuarios, reservas, pagamentos e notificacoes; administradores possuem acesso de gestao.
+- Controllers usam DTOs com `class-validator` e `ValidationPipe` global para validar payloads, converter tipos e bloquear campos desconhecidos.
 
 ## Principais endpoints da API
 
@@ -372,6 +373,7 @@ npm run preview
 
 - Swagger fica em `http://localhost:3000/api/docs`.
 - O backend cria o banco `parkq` via `npm run db:create` antes de iniciar nos scripts `start` e `start:dev`.
+- Payloads invalidos retornam erro `400` por causa do `ValidationPipe` global.
 - Algumas telas do frontend esperam `token`, `userId` e `id_estacionamento` no `localStorage`.
 - Os arquivos em `frontend/src/services/` existem, mas parte da integracao HTTP ainda esta dentro dos componentes.
 - Em producao, prefira migrations em vez de `synchronize`.

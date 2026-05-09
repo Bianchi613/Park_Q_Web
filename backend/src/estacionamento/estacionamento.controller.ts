@@ -23,6 +23,8 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreateEstacionamentoDto } from './dto/create-estacionamento.dto';
+import { UpdateEstacionamentoDto } from './dto/update-estacionamento.dto';
 import { EstacionamentoService } from './estacionamento.service';
 
 @ApiTags('Estacionamentos')
@@ -49,7 +51,7 @@ export class EstacionamentoController {
       },
     },
   })
-  async create(@Body() body: any) {
+  async create(@Body() body: CreateEstacionamentoDto) {
     return this.estacionamentoService.create(body);
   }
 
@@ -101,7 +103,10 @@ export class EstacionamentoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualiza os dados de um estacionamento' })
   @ApiParam({ name: 'id', description: 'ID do estacionamento' })
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateEstacionamentoDto,
+  ) {
     return this.estacionamentoService.update(id, body);
   }
 

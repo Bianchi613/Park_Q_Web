@@ -21,6 +21,8 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreatePagamentoDto } from './dto/create-pagamento.dto';
+import { UpdatePagamentoDto } from './dto/update-pagamento.dto';
 import { Pagamento } from './pagamento.model';
 import { PagamentoService } from './pagamento.service';
 
@@ -46,7 +48,7 @@ export class PagamentoController {
     },
   })
   async create(
-    @Body() data: Partial<Pagamento>,
+    @Body() data: CreatePagamentoDto,
     @Req() req: any,
   ): Promise<Pagamento> {
     return this.pagamentoService.createPagamentoAutorizado(data, req.user);
@@ -82,7 +84,7 @@ export class PagamentoController {
   @ApiParam({ name: 'id', description: 'ID do pagamento' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: Partial<Pagamento>,
+    @Body() data: UpdatePagamentoDto,
   ): Promise<Pagamento> {
     return this.pagamentoService.updatePagamento(id, data);
   }

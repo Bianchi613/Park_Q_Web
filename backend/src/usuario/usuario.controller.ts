@@ -24,6 +24,11 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { Usuario } from './usuario.model';
 import { UsuarioService } from './usuario.service';
+import { AdicionarVagaDto } from './dto/adicionar-vaga.dto';
+import { CancelarReservaDto } from './dto/cancelar-reserva.dto';
+import { CreateUsuarioDto } from './dto/create-usuario.dto';
+import { ReservarVagaDto } from './dto/reservar-vaga.dto';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
 @ApiTags('Usuarios')
 @Controller('usuarios')
@@ -50,7 +55,7 @@ export class UsuarioController {
       },
     },
   })
-  async create(@Body() data: Partial<Usuario>) {
+  async create(@Body() data: CreateUsuarioDto) {
     const usuario = await this.usuarioService.create(data);
     return this.serialize(usuario);
   }
@@ -91,7 +96,7 @@ export class UsuarioController {
   @ApiResponse({ status: 404, description: 'Usuario nao encontrado.' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: Partial<Usuario>,
+    @Body() data: UpdateUsuarioDto,
     @Req() req: any,
   ) {
     this.ensureSelfOrAdmin(id, req.user);
@@ -130,7 +135,7 @@ export class UsuarioController {
   })
   async reservarVaga(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: any,
+    @Body() data: ReservarVagaDto,
     @Req() req: any,
   ) {
     this.ensureSelfOrAdmin(id, req.user);
@@ -152,7 +157,7 @@ export class UsuarioController {
   })
   async cancelarReserva(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: any,
+    @Body() data: CancelarReservaDto,
     @Req() req: any,
   ) {
     this.ensureSelfOrAdmin(id, req.user);
@@ -192,7 +197,7 @@ export class UsuarioController {
   })
   async adicionarVaga(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: any,
+    @Body() data: AdicionarVagaDto,
   ) {
     return this.usuarioService.adicionarVaga(id, data);
   }

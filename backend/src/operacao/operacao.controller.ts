@@ -22,6 +22,8 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreateOperacaoDto } from './dto/create-operacao.dto';
+import { UpdateOperacaoDto } from './dto/update-operacao.dto';
 import { Operacao, OperacaoTipo } from './operacao.model';
 import { OperacaoService } from './operacao.service';
 
@@ -49,7 +51,7 @@ export class OperacaoController {
       },
     },
   })
-  async create(@Body() data: Partial<Operacao>): Promise<Operacao> {
+  async create(@Body() data: CreateOperacaoDto): Promise<Operacao> {
     return this.operacaoService.create(data);
   }
 
@@ -94,7 +96,7 @@ export class OperacaoController {
   @ApiParam({ name: 'id', description: 'ID da operacao' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: Partial<Operacao>,
+    @Body() data: UpdateOperacaoDto,
   ): Promise<Operacao> {
     return this.operacaoService.update(id, data);
   }

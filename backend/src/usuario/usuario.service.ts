@@ -86,6 +86,11 @@ export class UsuarioService {
     this.ensureClient(usuario);
 
     const idVaga = Number(data.id_vaga ?? data.idVaga);
+
+    if (!idVaga) {
+      throw new BadRequestException('id_vaga e obrigatorio.');
+    }
+
     const vaga = await this.vagaService.findOne(idVaga);
 
     if (vaga.status !== 'disponivel' || vaga.reservada) {

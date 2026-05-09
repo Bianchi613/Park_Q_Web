@@ -21,6 +21,9 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreateVagaDto } from './dto/create-vaga.dto';
+import { ReservarVagaBodyDto } from './dto/reservar-vaga-body.dto';
+import { UpdateVagaDto } from './dto/update-vaga.dto';
 import { Vaga } from './vaga.model';
 import { VagaService } from './vaga.service';
 
@@ -75,7 +78,7 @@ export class VagaController {
       },
     },
   })
-  async create(@Body() vagaData: Partial<Vaga>): Promise<Vaga> {
+  async create(@Body() vagaData: CreateVagaDto): Promise<Vaga> {
     return this.vagaService.create(vagaData);
   }
 
@@ -89,7 +92,7 @@ export class VagaController {
   @ApiResponse({ status: 404, description: 'Vaga nao encontrada.' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() vagaData: Partial<Vaga>,
+    @Body() vagaData: UpdateVagaDto,
   ): Promise<Vaga> {
     return this.vagaService.update(id, vagaData);
   }
@@ -115,9 +118,9 @@ export class VagaController {
   @ApiResponse({ status: 200, description: 'Vaga reservada com sucesso.' })
   async reservar(
     @Param('id', ParseIntPipe) id: number,
-    @Body('id_reserva') idReserva?: number,
+    @Body() body: ReservarVagaBodyDto,
   ): Promise<Vaga> {
-    return this.vagaService.reservar(id, idReserva);
+    return this.vagaService.reservar(id, body.id_reserva);
   }
 
   @Post(':id/liberar')

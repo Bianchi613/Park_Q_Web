@@ -23,6 +23,8 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreateReservaDto } from './dto/create-reserva.dto';
+import { UpdateReservaDto } from './dto/update-reserva.dto';
 import { ReservaService } from './reserva.service';
 
 @ApiTags('Reservas')
@@ -50,7 +52,7 @@ export class ReservaController {
       },
     },
   })
-  async createReserva(@Body() data: any, @Req() req: any) {
+  async createReserva(@Body() data: CreateReservaDto, @Req() req: any) {
     if (req.user?.role === 'CLIENT') {
       data.id_usuario = req.user.id;
       data.idUsuario = req.user.id;
@@ -116,7 +118,7 @@ export class ReservaController {
   @ApiParam({ name: 'id', description: 'ID da reserva' })
   async updateReserva(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: any,
+    @Body() data: UpdateReservaDto,
     @Req() req: any,
   ) {
     await this.ensureReservaOwnerOrAdmin(id, req.user);

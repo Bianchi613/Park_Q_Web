@@ -21,7 +21,7 @@ export interface RegistrarOperacaoInput {
 export class OperacaoService {
   constructor(private readonly operacaoRepository: OperacaoRepository) {}
 
-  async create(data: Partial<Operacao>): Promise<Operacao> {
+  async create(data: any): Promise<Operacao> {
     return this.registrar({
       tipo: data.tipo,
       descricao: data.descricao,
@@ -125,7 +125,7 @@ export class OperacaoService {
     return this.operacaoRepository.findOne(id);
   }
 
-  async update(id: number, data: Partial<Operacao>): Promise<Operacao> {
+  async update(id: number, data: any): Promise<Operacao> {
     return this.operacaoRepository.update(id, data);
   }
 

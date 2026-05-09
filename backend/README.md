@@ -75,6 +75,10 @@ Perfis:
 | `notificacao` | Mensagens ao usuario |
 | `operacao` | Auditoria de acoes do sistema |
 
+## DTOs e validacao
+
+Os controllers usam DTOs com `class-validator` e `ValidationPipe` global. O backend valida campos obrigatorios, tipos, enums e rejeita campos desconhecidos antes de chamar os services.
+
 ## Scripts
 
 ```bash
