@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { OperacaoService } from '../operacao/operacao.service';
 import { UsuarioService } from '../usuario/usuario.service';
 
 type AuthenticatedUser = {
@@ -15,6 +16,7 @@ export class AuthService {
   constructor(
     private readonly usuarioService: UsuarioService,
     private readonly jwtService: JwtService,
+    private readonly operacaoService: OperacaoService,
   ) {}
 
   async validateUser(email: string, senha: string): Promise<AuthenticatedUser> {
@@ -44,6 +46,19 @@ export class AuthService {
       role: user.role,
       id_estacionamento: user.id_estacionamento,
     };
+
+    await this.operacaoService.registrar({
+      tipo: 'USUARIO',
+      descricao: `Usuario ${user.id} realizou login.`,
+      id_usuario: user.id,
+      entidade: 'Usuario',
+      id_entidade: user.id,
+      dados: {
+        email: user.email,
+        role: user.role,
+        id_estacionamento: user.id_estacionamento,
+      },
+    });
 
     return {
       id: user.id,

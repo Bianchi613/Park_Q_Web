@@ -9,5 +9,6 @@ import { PlanoTarifacaoController } from './plano-tarifacao.controller';
   imports: [SequelizeModule.forFeature([PlanoTarifacao])],
   providers: [PlanoTarifacaoService, PlanoTarifacaoRepository],
   controllers: [PlanoTarifacaoController],
+  exports: [PlanoTarifacaoService, PlanoTarifacaoRepository],
 })
 export class PlanoTarifacaoModule {}

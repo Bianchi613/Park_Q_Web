@@ -8,6 +8,7 @@ import {
   HasMany,
 } from 'sequelize-typescript';
 import { Estacionamento } from '../estacionamento/estacionamento.model';
+import { Notificacao } from '../notificacao/notificacao.model';
 import { Operacao } from '../operacao/operacao.model';
 import { Reserva } from '../reserva/reserva.model';
 
@@ -92,4 +93,7 @@ export class Usuario extends Model<Usuario> {
 
   @HasMany(() => Operacao)
   operacoes: Operacao[];
+
+  @HasMany(() => Notificacao)
+  notificacoes: Notificacao[];
 }

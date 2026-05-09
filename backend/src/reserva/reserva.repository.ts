@@ -29,6 +29,27 @@ export class ReservaRepository {
     });
   }
 
+  async findReservasParaMonitoramento(
+    idEstacionamento?: number,
+  ): Promise<Reserva[]> {
+    return this.reservaModel.findAll({
+      where: {
+        status: { [Op.in]: ['ATIVA', 'EXPIRADA'] },
+      },
+      include: [
+        'usuario',
+        {
+          association: 'vaga',
+          ...(idEstacionamento
+            ? { where: { id_estacionamento: idEstacionamento } }
+            : {}),
+        },
+        'plano',
+      ],
+      order: [['data_fim', 'ASC']],
+    });
+  }
+
   async findReservaById(id: number): Promise<Reserva> {
     const reserva = await this.reservaModel.findByPk(id, {
       include: ['usuario', 'vaga', 'plano'],

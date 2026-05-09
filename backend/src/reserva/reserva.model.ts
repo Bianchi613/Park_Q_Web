@@ -3,9 +3,11 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Notificacao } from '../notificacao/notificacao.model';
 import { PlanoTarifacao } from '../plano-tarifacao/plano-tarifacao.model';
 import { Usuario } from '../usuario/usuario.model';
 import { Vaga } from '../vaga/vaga.model';
@@ -58,4 +60,7 @@ export class Reserva extends Model<Reserva> {
 
   @BelongsTo(() => PlanoTarifacao)
   plano: PlanoTarifacao;
+
+  @HasMany(() => Notificacao)
+  notificacoes: Notificacao[];
 }

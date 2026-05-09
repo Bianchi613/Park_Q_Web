@@ -1,7 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { WhereOptions } from 'sequelize';
 import { Usuario } from '../usuario/usuario.model';
-import { Operacao } from './operacao.model';
+import { Operacao, OperacaoTipo } from './operacao.model';
+
+export interface OperacaoFilters {
+  id_usuario?: number;
+  tipo?: OperacaoTipo;
+  entidade?: string;
+  id_entidade?: number;
+}
 
 @Injectable()
 export class OperacaoRepository {
@@ -14,8 +22,27 @@ export class OperacaoRepository {
     return this.operacaoModel.create(data);
   }
 
-  async findAll(): Promise<Operacao[]> {
+  async findAll(filters: OperacaoFilters = {}): Promise<Operacao[]> {
+    const where: WhereOptions<Operacao> = {};
+
+    if (filters.id_usuario) {
+      where.id_usuario = filters.id_usuario;
+    }
+
+    if (filters.tipo) {
+      where.tipo = filters.tipo;
+    }
+
+    if (filters.entidade) {
+      where.entidade = filters.entidade;
+    }
+
+    if (filters.id_entidade) {
+      where.id_entidade = filters.id_entidade;
+    }
+
     return this.operacaoModel.findAll({
+      where,
       include: [Usuario],
       order: [['id', 'DESC']],
     });

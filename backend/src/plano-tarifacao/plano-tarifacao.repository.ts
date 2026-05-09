@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { PlanoTarifacao } from './plano-tarifacao.model';
+import type { TarifaCalculada } from './plano-tarifacao.service';
 
 @Injectable()
 export class PlanoTarifacaoRepository {
@@ -48,19 +53,60 @@ export class PlanoTarifacaoRepository {
     duracao: number,
     planoId: number,
   ): Promise<number> {
+    const tarifa = await this.calcularTarifaDetalhada(
+      tipoVaga,
+      duracao,
+      planoId,
+    );
+    return tarifa.valor;
+  }
+
+  async calcularTarifaDetalhada(
+    tipoVaga: string,
+    duracaoHoras: number,
+    planoId: number,
+  ): Promise<TarifaCalculada> {
     const plano = await this.findOne(planoId);
+    const normalizedTipo = this.normalizeTipoVaga(tipoVaga);
+    const normalizedDuracao = Number(duracaoHoras);
+
+    if (!Number.isFinite(normalizedDuracao) || normalizedDuracao <= 0) {
+      throw new BadRequestException('duracao deve ser maior que zero.');
+    }
+
     const taxaBase = Number(plano.taxa_base ?? 0);
     const taxaHora = Number(plano.taxa_hora ?? 0);
     const taxaDiaria = Number(plano.taxa_diaria ?? 0);
+    const diasCobrados = Math.ceil(normalizedDuracao / 24);
+    const valorPorUso =
+      normalizedDuracao <= 24 || taxaDiaria <= 0
+        ? taxaHora * normalizedDuracao
+        : taxaDiaria * diasCobrados;
+    const descontoTipoVaga = normalizedTipo === 'moto' ? 0.3 : 0;
+    const subtotal = taxaBase + valorPorUso;
+    const valor = subtotal * (1 - descontoTipoVaga);
 
-    if (tipoVaga === 'moto') {
-      return taxaBase + taxaHora * duracao;
+    return {
+      planoId: plano.id,
+      tipoVaga: normalizedTipo,
+      duracaoHoras: normalizedDuracao,
+      diasCobrados,
+      taxaBase,
+      subtotalUso: Number(valorPorUso.toFixed(2)),
+      descontoTipoVaga,
+      valor: Number(valor.toFixed(2)),
+    };
+  }
+
+  private normalizeTipoVaga(tipoVaga: string): string {
+    const normalized = String(tipoVaga ?? '')
+      .toLowerCase()
+      .trim();
+
+    if (!['carro', 'moto'].includes(normalized)) {
+      throw new BadRequestException('tipoVaga deve ser carro ou moto.');
     }
 
-    if (tipoVaga === 'carro') {
-      return taxaBase + taxaDiaria;
-    }
-
-    return taxaBase;
+    return normalized;
   }
 }

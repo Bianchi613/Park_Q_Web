@@ -8,6 +8,8 @@ import { UsuarioRepository } from './usuario.repository';
 import { ReservaModule } from '../reserva/reserva.module';
 import { VagaModule } from '../vaga/vaga.module';
 import { EstacionamentoModule } from '../estacionamento/estacionamento.module';
+import { NotificacaoModule } from '../notificacao/notificacao.module';
+import { OperacaoModule } from '../operacao/operacao.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { EstacionamentoModule } from '../estacionamento/estacionamento.module';
     ReservaModule,
     VagaModule,
     EstacionamentoModule,
+    OperacaoModule,
+    NotificacaoModule,
   ],
   providers: [UsuarioService, UsuarioRepository],
   controllers: [UsuarioController],

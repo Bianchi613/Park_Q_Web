@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EstacionamentoService } from '../estacionamento/estacionamento.service';
+import { NotificacaoService } from '../notificacao/notificacao.service';
+import { OperacaoService } from '../operacao/operacao.service';
 import { ReservaService } from '../reserva/reserva.service';
 import { VagaService } from '../vaga/vaga.service';
 import { UsuarioRepository } from './usuario.repository';
@@ -16,6 +18,11 @@ describe('UsuarioService', () => {
         { provide: ReservaService, useValue: {} },
         { provide: VagaService, useValue: {} },
         { provide: EstacionamentoService, useValue: {} },
+        { provide: OperacaoService, useValue: { registrar: jest.fn() } },
+        {
+          provide: NotificacaoService,
+          useValue: { notificarCadastro: jest.fn() },
+        },
       ],
     }).compile();
 

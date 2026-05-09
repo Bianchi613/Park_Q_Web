@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -47,6 +48,25 @@ export class ReservaController {
   @ApiOperation({ summary: 'Retorna todas as reservas' })
   async findAllReservas() {
     return this.reservaService.findAllReservas();
+  }
+
+  @Get('monitoramento')
+  @ApiOperation({
+    summary: 'Monitora tempo restante das reservas ativas ou expiradas',
+  })
+  async monitorarReservas(
+    @Query('id_estacionamento') idEstacionamento?: string,
+  ) {
+    return this.reservaService.monitorarReservas(
+      idEstacionamento ? Number(idEstacionamento) : undefined,
+    );
+  }
+
+  @Get(':id/monitorar-tempo')
+  @ApiOperation({ summary: 'Monitora o tempo restante de uma reserva' })
+  @ApiParam({ name: 'id', description: 'ID da reserva' })
+  async monitorarTempo(@Param('id', ParseIntPipe) id: number) {
+    return this.reservaService.monitorarTempo(id);
   }
 
   @Get(':id')

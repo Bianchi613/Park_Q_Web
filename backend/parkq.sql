@@ -74,10 +74,31 @@ ALTER TABLE Vaga
 ADD CONSTRAINT fk_vaga_reserva
 FOREIGN KEY (id_reserva) REFERENCES Reserva(id);
 
+CREATE TABLE Notificacao (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(30) CHECK (tipo IN ('CADASTRO', 'RESERVA', 'PAGAMENTO', 'CANCELAMENTO', 'EXPIRACAO', 'SISTEMA')) NOT NULL DEFAULT 'SISTEMA',
+    titulo VARCHAR(120) NOT NULL,
+    mensagem TEXT NOT NULL,
+    lida BOOLEAN NOT NULL DEFAULT FALSE,
+    data_hora TIMESTAMP NOT NULL DEFAULT NOW(),
+    chave VARCHAR(120) UNIQUE,
+    id_usuario INT NOT NULL,
+    id_reserva INT,
+    createdAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    updatedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id),
+    FOREIGN KEY (id_reserva) REFERENCES Reserva(id)
+);
+
 CREATE TABLE Operacao (
     id SERIAL PRIMARY KEY,
+    tipo VARCHAR(30) CHECK (tipo IN ('RESERVA', 'CANCELAMENTO', 'PAGAMENTO', 'VAGA', 'ESTACIONAMENTO', 'RELATORIO', 'USUARIO', 'SISTEMA')) NOT NULL DEFAULT 'SISTEMA',
     descricao VARCHAR(255) NOT NULL,
     data_hora TIMESTAMP NOT NULL DEFAULT NOW(),
+    entidade VARCHAR(80),
+    id_entidade INT,
+    dados JSONB,
+    resultado VARCHAR(20) CHECK (resultado IN ('SUCESSO', 'FALHA')) NOT NULL DEFAULT 'SUCESSO',
     id_usuario INT NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT NOW(),
     updatedAt TIMESTAMP NOT NULL DEFAULT NOW(),

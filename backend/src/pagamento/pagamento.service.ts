@@ -1,17 +1,45 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { NotificacaoService } from '../notificacao/notificacao.service';
+import { OperacaoService } from '../operacao/operacao.service';
+import { ReservaService } from '../reserva/reserva.service';
 import { Pagamento } from './pagamento.model';
 import { PagamentoRepository } from './pagamento.repository';
 
 @Injectable()
 export class PagamentoService {
-  constructor(private readonly pagamentoRepository: PagamentoRepository) {}
+  constructor(
+    private readonly pagamentoRepository: PagamentoRepository,
+    private readonly reservaService: ReservaService,
+    private readonly operacaoService: OperacaoService,
+    private readonly notificacaoService: NotificacaoService,
+  ) {}
 
   async createPagamento(data: Partial<Pagamento>): Promise<Pagamento> {
     return this.registrarPagamento(data);
   }
 
   async registrarPagamento(data: Partial<Pagamento>): Promise<Pagamento> {
-    return this.pagamentoRepository.create(this.normalizePayload(data));
+    const payload = this.normalizePayload(data);
+    const reserva = await this.reservaService.findReservaById(
+      payload.id_reserva,
+    );
+    const pagamento = await this.pagamentoRepository.create(payload);
+
+    await this.operacaoService.registrarPagamentoConfirmado({
+      id_pagamento: pagamento.id,
+      id_reserva: pagamento.id_reserva,
+      id_usuario: reserva.id_usuario,
+      metodo_pagamento: pagamento.metodo_pagamento,
+      valor_pago: Number(pagamento.valor_pago),
+    });
+    await this.notificacaoService.notificarPagamentoConfirmado({
+      id_pagamento: pagamento.id,
+      id_reserva: pagamento.id_reserva,
+      id_usuario: reserva.id_usuario,
+      valor_pago: Number(pagamento.valor_pago),
+    });
+
+    return pagamento;
   }
 
   validarPagamento(data: Partial<Pagamento>): Partial<Pagamento> {

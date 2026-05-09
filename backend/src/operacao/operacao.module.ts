@@ -10,5 +10,6 @@ import { Usuario } from '../usuario/usuario.model';
   imports: [SequelizeModule.forFeature([Operacao, Usuario])],
   controllers: [OperacaoController],
   providers: [OperacaoService, OperacaoRepository],
+  exports: [OperacaoService],
 })
 export class OperacaoModule {}

@@ -3,17 +3,56 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { NotificacaoService } from '../notificacao/notificacao.service';
+import { OperacaoService } from '../operacao/operacao.service';
+import { PlanoTarifacaoService } from '../plano-tarifacao/plano-tarifacao.service';
+import { VagaService } from '../vaga/vaga.service';
 import { Reserva } from './reserva.model';
 import { ReservaRepository } from './reserva.repository';
 
+export interface MonitoramentoReserva {
+  id_reserva: number;
+  id_usuario: number;
+  id_vaga: number;
+  status: string;
+  data_reserva: Date;
+  data_fim: Date;
+  tempoRestanteMinutos: number;
+  expirada: boolean;
+  deveNotificar: boolean;
+}
+
 @Injectable()
 export class ReservaService {
-  constructor(private readonly reservaRepository: ReservaRepository) {}
+  constructor(
+    private readonly reservaRepository: ReservaRepository,
+    private readonly operacaoService: OperacaoService,
+    private readonly notificacaoService: NotificacaoService,
+    private readonly planoTarifacaoService: PlanoTarifacaoService,
+    private readonly vagaService: VagaService,
+  ) {}
 
   async createReserva(data: any): Promise<Reserva> {
     const normalized = this.normalizePayload(data);
+    await this.preencherValorAutomaticamente(normalized);
     await this.checkConflito(normalized);
-    return this.reservaRepository.createReserva(normalized);
+    const reserva = await this.reservaRepository.createReserva(normalized);
+    await this.operacaoService.registrarReservaCriada({
+      id: reserva.id,
+      id_usuario: reserva.id_usuario,
+      id_vaga: reserva.id_vaga,
+      id_plano: reserva.id_plano,
+      valor: reserva.valor,
+      data_reserva: reserva.data_reserva,
+      data_fim: reserva.data_fim,
+    });
+    await this.notificacaoService.notificarReservaCriada({
+      id: reserva.id,
+      id_usuario: reserva.id_usuario,
+      id_vaga: reserva.id_vaga,
+      data_fim: reserva.data_fim,
+    });
+    return reserva;
   }
 
   async findAllReservas(): Promise<Reserva[]> {
@@ -33,12 +72,24 @@ export class ReservaService {
     this.ensureReservaAberta(reserva, 'atualizar');
 
     const normalized = this.normalizePayload(data, false);
-    await this.checkConflito(
-      { ...reserva.get({ plain: true }), ...normalized },
-      id,
-    );
+    const merged = { ...reserva.get({ plain: true }), ...normalized };
+    const shouldRecalculateValue =
+      normalized.valor === undefined &&
+      ['data_reserva', 'data_fim', 'id_plano', 'id_vaga'].some(
+        (field) => field in normalized,
+      );
 
-    return this.reservaRepository.updateReserva(id, normalized);
+    await this.preencherValorAutomaticamente(
+      merged,
+      normalized.valor !== undefined,
+      shouldRecalculateValue,
+    );
+    await this.checkConflito(merged, id);
+
+    return this.reservaRepository.updateReserva(id, {
+      ...normalized,
+      valor: merged.valor,
+    });
   }
 
   async deleteReserva(id: number): Promise<void> {
@@ -51,10 +102,43 @@ export class ReservaService {
     const reserva = await this.reservaRepository.findReservaById(id);
     this.ensureReservaAberta(reserva, 'cancelar');
 
-    return this.reservaRepository.updateReserva(id, {
+    const reservaCancelada = await this.reservaRepository.updateReserva(id, {
       status: 'CANCELADA',
       data_fim: reserva.data_fim ?? new Date(),
     });
+    await this.operacaoService.registrarReservaCancelada({
+      id: reservaCancelada.id,
+      id_usuario: reservaCancelada.id_usuario,
+      id_vaga: reservaCancelada.id_vaga,
+    });
+    await this.notificacaoService.notificarReservaCancelada({
+      id: reservaCancelada.id,
+      id_usuario: reservaCancelada.id_usuario,
+    });
+
+    return reservaCancelada;
+  }
+
+  async monitorarTempo(id: number): Promise<MonitoramentoReserva> {
+    const reserva = await this.reservaRepository.findReservaById(id);
+    return this.monitorarReserva(reserva);
+  }
+
+  async monitorarReservas(
+    idEstacionamento?: number,
+  ): Promise<MonitoramentoReserva[]> {
+    const reservas =
+      await this.reservaRepository.findReservasParaMonitoramento(
+        idEstacionamento,
+      );
+
+    const monitoramentos: MonitoramentoReserva[] = [];
+
+    for (const reserva of reservas) {
+      monitoramentos.push(await this.monitorarReserva(reserva));
+    }
+
+    return monitoramentos;
   }
 
   private normalizePayload(
@@ -89,12 +173,65 @@ export class ReservaService {
         throw new BadRequestException('id_vaga e obrigatorio.');
       }
 
-      if (normalized.valor === undefined || normalized.valor === null) {
-        throw new BadRequestException('valor e obrigatorio.');
-      }
+      this.ensureValorOrCalculationFields(normalized);
     }
 
     return normalized;
+  }
+
+  private ensureValorOrCalculationFields(data: Partial<Reserva>): void {
+    if (data.valor !== undefined && data.valor !== null) {
+      return;
+    }
+
+    if (!data.id_plano) {
+      throw new BadRequestException(
+        'valor ou id_plano e obrigatorio para calcular a reserva.',
+      );
+    }
+
+    if (!data.data_fim) {
+      throw new BadRequestException(
+        'data_fim e obrigatoria para calcular o valor da reserva.',
+      );
+    }
+  }
+
+  private async preencherValorAutomaticamente(
+    data: Partial<Reserva>,
+    manterValorInformado = false,
+    recalcularMesmoComValor = false,
+  ): Promise<void> {
+    if (
+      manterValorInformado ||
+      (!recalcularMesmoComValor &&
+        data.valor !== undefined &&
+        data.valor !== null)
+    ) {
+      return;
+    }
+
+    if (
+      !data.id_plano ||
+      !data.id_vaga ||
+      !data.data_reserva ||
+      !data.data_fim
+    ) {
+      return;
+    }
+
+    const vaga = await this.vagaService.findOne(data.id_vaga);
+    const duracaoHoras = this.planoTarifacaoService.calcularDuracaoHoras(
+      data.data_reserva,
+      data.data_fim,
+    );
+    const tarifa = await this.planoTarifacaoService.calcularTarifaDetalhada(
+      vaga.tipo,
+      duracaoHoras,
+      data.id_plano,
+    );
+
+    data.valor = tarifa.valor;
   }
 
   private async checkConflito(data: Partial<Reserva>, reservaId?: number) {
@@ -123,6 +260,56 @@ export class ReservaService {
         'A vaga ja esta reservada nesse intervalo de tempo.',
       );
     }
+  }
+
+  private async monitorarReserva(
+    reserva: Reserva,
+  ): Promise<MonitoramentoReserva> {
+    const dataFim = reserva.data_fim ? new Date(reserva.data_fim) : null;
+    const agora = new Date();
+    const tempoRestanteMinutos = dataFim
+      ? Math.ceil((dataFim.getTime() - agora.getTime()) / (1000 * 60))
+      : 0;
+    const expirada = !!dataFim && tempoRestanteMinutos <= 0;
+    const deveNotificar =
+      reserva.status === 'ATIVA' &&
+      !!dataFim &&
+      tempoRestanteMinutos > 0 &&
+      tempoRestanteMinutos <= 15;
+
+    if (expirada && reserva.status === 'ATIVA') {
+      const reservaExpirada = await this.reservaRepository.updateReserva(
+        reserva.id,
+        {
+          status: 'EXPIRADA',
+        },
+      );
+      await this.vagaService.liberar(reserva.id_vaga);
+      await this.notificacaoService.notificarReservaExpirada({
+        id: reservaExpirada.id,
+        id_usuario: reservaExpirada.id_usuario,
+      });
+
+      reserva = reservaExpirada;
+    } else if (deveNotificar) {
+      await this.notificacaoService.notificarReservaExpirando({
+        id: reserva.id,
+        id_usuario: reserva.id_usuario,
+        minutosRestantes: tempoRestanteMinutos,
+      });
+    }
+
+    return {
+      id_reserva: reserva.id,
+      id_usuario: reserva.id_usuario,
+      id_vaga: reserva.id_vaga,
+      status: reserva.status,
+      data_reserva: reserva.data_reserva,
+      data_fim: reserva.data_fim,
+      tempoRestanteMinutos,
+      expirada,
+      deveNotificar,
+    };
   }
 
   private ensureReservaAberta(reserva: Reserva, action: string): void {

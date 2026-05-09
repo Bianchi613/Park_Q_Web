@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { AuthModule } from './auth/auth.module';
 import { EstacionamentoModule } from './estacionamento/estacionamento.module';
+import { NotificacaoModule } from './notificacao/notificacao.module';
 import { OperacaoModule } from './operacao/operacao.module';
 import { PagamentoModule } from './pagamento/pagamento.module';
 import { PlanoTarifacaoModule } from './plano-tarifacao/plano-tarifacao.module';
@@ -40,6 +41,7 @@ import { VagaModule } from './vaga/vaga.module';
     VagaModule,
     ReservaModule,
     OperacaoModule,
+    NotificacaoModule,
     PagamentoModule,
     AuthModule,
   ],

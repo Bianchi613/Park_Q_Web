@@ -2,6 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { PlanoTarifacaoRepository } from './plano-tarifacao.repository';
 import { PlanoTarifacao } from './plano-tarifacao.model';
 
+export interface TarifaCalculada {
+  planoId: number;
+  tipoVaga: string;
+  duracaoHoras: number;
+  diasCobrados: number;
+  taxaBase: number;
+  subtotalUso: number;
+  descontoTipoVaga: number;
+  valor: number;
+}
+
 @Injectable()
 export class PlanoTarifacaoService {
   constructor(
@@ -19,14 +30,19 @@ export class PlanoTarifacaoService {
   async create(
     planoTarifacaoData: Partial<PlanoTarifacao>,
   ): Promise<PlanoTarifacao> {
-    return this.planoTarifacaoRepository.create(planoTarifacaoData);
+    return this.planoTarifacaoRepository.create(
+      this.normalizePayload(planoTarifacaoData),
+    );
   }
 
   async update(
     id: number,
     planoTarifacaoData: Partial<PlanoTarifacao>,
   ): Promise<PlanoTarifacao> {
-    return this.planoTarifacaoRepository.update(id, planoTarifacaoData);
+    return this.planoTarifacaoRepository.update(
+      id,
+      this.normalizePayload(planoTarifacaoData),
+    );
   }
 
   async remove(id: number): Promise<void> {
@@ -38,10 +54,57 @@ export class PlanoTarifacaoService {
     duracao: number,
     planoId: number,
   ): Promise<number> {
-    return this.planoTarifacaoRepository.calcularTarifa(
+    const tarifa = await this.calcularTarifaDetalhada(
       tipoVaga,
       duracao,
       planoId,
     );
+    return tarifa.valor;
+  }
+
+  async calcularTarifaDetalhada(
+    tipoVaga: string,
+    duracaoHoras: number,
+    planoId: number,
+  ): Promise<TarifaCalculada> {
+    return this.planoTarifacaoRepository.calcularTarifaDetalhada(
+      tipoVaga,
+      duracaoHoras,
+      planoId,
+    );
+  }
+
+  calcularDuracaoHoras(
+    dataInicio: Date | string,
+    dataFim: Date | string,
+  ): number {
+    const inicio = new Date(dataInicio);
+    const fim = new Date(dataFim);
+    const diferencaMs = fim.getTime() - inicio.getTime();
+
+    if (Number.isNaN(diferencaMs) || diferencaMs <= 0) {
+      return 0;
+    }
+
+    return Math.ceil(diferencaMs / (1000 * 60 * 60));
+  }
+
+  private normalizePayload(
+    data: Partial<PlanoTarifacao> & Record<string, any>,
+  ): Partial<PlanoTarifacao> {
+    const normalized: Partial<PlanoTarifacao> = {
+      ...data,
+      data_vigencia: data.data_vigencia ?? data.dataVigencia,
+      taxa_base: data.taxa_base ?? data.taxaBase,
+      taxa_hora: data.taxa_hora ?? data.taxaHora,
+      taxa_diaria: data.taxa_diaria ?? data.taxaDiaria,
+    };
+
+    delete (normalized as any).dataVigencia;
+    delete (normalized as any).taxaBase;
+    delete (normalized as any).taxaHora;
+    delete (normalized as any).taxaDiaria;
+
+    return normalized;
   }
 }

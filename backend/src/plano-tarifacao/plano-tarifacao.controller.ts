@@ -83,20 +83,23 @@ export class PlanoTarifacaoController {
     schema: {
       example: {
         tipoVaga: 'carro',
-        duracao: 3,
+        duracaoHoras: 3,
       },
     },
   })
   async calcularTarifa(
     @Param('id', ParseIntPipe) id: number,
-    @Body() { tipoVaga, duracao }: { tipoVaga: string; duracao: number },
-  ): Promise<{ valor: number }> {
-    const valor = await this.planoTarifacaoService.calcularTarifa(
+    @Body()
+    {
       tipoVaga,
-      Number(duracao),
+      duracao,
+      duracaoHoras,
+    }: { tipoVaga: string; duracao?: number; duracaoHoras?: number },
+  ) {
+    return this.planoTarifacaoService.calcularTarifaDetalhada(
+      tipoVaga,
+      Number(duracaoHoras ?? duracao),
       id,
     );
-
-    return { valor };
   }
 }

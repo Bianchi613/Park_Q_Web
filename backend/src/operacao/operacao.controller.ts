@@ -7,15 +7,17 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Operacao } from './operacao.model';
+import { Operacao, OperacaoTipo } from './operacao.model';
 import { OperacaoService } from './operacao.service';
 
 @ApiTags('Operacoes')
@@ -29,8 +31,12 @@ export class OperacaoController {
   @ApiBody({
     schema: {
       example: {
-        descricao: 'Operacao de entrada',
+        tipo: 'RESERVA',
+        descricao: 'Reserva criada',
         data_hora: '2024-12-15T10:00:00Z',
+        entidade: 'Reserva',
+        id_entidade: 1,
+        resultado: 'SUCESSO',
         id_usuario: 1,
       },
     },
@@ -41,8 +47,22 @@ export class OperacaoController {
 
   @Get()
   @ApiOperation({ summary: 'Retorna todas as operacoes' })
-  async findAll(): Promise<Operacao[]> {
-    return this.operacaoService.findAll();
+  @ApiQuery({ name: 'id_usuario', required: false, example: 1 })
+  @ApiQuery({ name: 'tipo', required: false, example: 'RESERVA' })
+  @ApiQuery({ name: 'entidade', required: false, example: 'Reserva' })
+  @ApiQuery({ name: 'id_entidade', required: false, example: 1 })
+  async findAll(
+    @Query('id_usuario') idUsuario?: string,
+    @Query('tipo') tipo?: OperacaoTipo,
+    @Query('entidade') entidade?: string,
+    @Query('id_entidade') idEntidade?: string,
+  ): Promise<Operacao[]> {
+    return this.operacaoService.findAll({
+      id_usuario: idUsuario ? Number(idUsuario) : undefined,
+      tipo,
+      entidade,
+      id_entidade: idEntidade ? Number(idEntidade) : undefined,
+    });
   }
 
   @Get(':id')

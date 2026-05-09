@@ -1,5 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { OperacaoService } from '../operacao/operacao.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { AuthService } from './auth.service';
 
@@ -12,6 +13,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: UsuarioService, useValue: {} },
         { provide: JwtService, useValue: { sign: jest.fn() } },
+        { provide: OperacaoService, useValue: { registrar: jest.fn() } },
       ],
     }).compile();
 

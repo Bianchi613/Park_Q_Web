@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { EstacionamentoService } from '../estacionamento/estacionamento.service';
+import { NotificacaoService } from '../notificacao/notificacao.service';
+import { OperacaoService } from '../operacao/operacao.service';
 import { Reserva } from '../reserva/reserva.model';
 import { ReservaService } from '../reserva/reserva.service';
 import { Vaga } from '../vaga/vaga.model';
@@ -19,6 +21,8 @@ export class UsuarioService {
     private readonly reservaService: ReservaService,
     private readonly vagaService: VagaService,
     private readonly estacionamentoService: EstacionamentoService,
+    private readonly operacaoService: OperacaoService,
+    private readonly notificacaoService: NotificacaoService,
   ) {}
 
   async create(data: Partial<Usuario>): Promise<Usuario> {
@@ -30,7 +34,12 @@ export class UsuarioService {
     }
 
     data.senha = await bcrypt.hash(data.senha, 10);
-    return this.usuarioRepository.create(data);
+    const usuario = await this.usuarioRepository.create(data);
+    await this.notificacaoService.notificarCadastro({
+      id: usuario.id,
+      nome: usuario.nome,
+    });
+    return usuario;
   }
 
   async findAll(): Promise<Usuario[]> {
@@ -126,35 +135,88 @@ export class UsuarioService {
     const usuario = await this.findOne(id);
     this.ensureAdmin(usuario);
 
-    return this.vagaService.create({
+    const vaga = await this.vagaService.create({
       id_estacionamento: data.id_estacionamento ?? usuario.id_estacionamento,
       numero: data.numero,
       tipo: data.tipo ?? 'carro',
       status: data.status ?? 'disponivel',
       reservada: data.reservada ?? false,
     });
+
+    await this.operacaoService.registrar({
+      tipo: 'VAGA',
+      descricao: `Vaga ${vaga.id} adicionada.`,
+      id_usuario: usuario.id,
+      entidade: 'Vaga',
+      id_entidade: vaga.id,
+      dados: {
+        numero: vaga.numero,
+        tipo: vaga.tipo,
+        id_estacionamento: vaga.id_estacionamento,
+      },
+    });
+
+    return vaga;
   }
 
   async removerVaga(id: number, vagaId: number): Promise<{ message: string }> {
     const usuario = await this.findOne(id);
     this.ensureAdmin(usuario);
 
+    const vaga = await this.vagaService.findOne(vagaId);
     await this.vagaService.remove(vagaId);
+    await this.operacaoService.registrar({
+      tipo: 'VAGA',
+      descricao: `Vaga ${vagaId} removida.`,
+      id_usuario: usuario.id,
+      entidade: 'Vaga',
+      id_entidade: vagaId,
+      dados: {
+        numero: vaga.numero,
+        tipo: vaga.tipo,
+        id_estacionamento: vaga.id_estacionamento,
+      },
+    });
+
     return { message: `Vaga com ID ${vagaId} removida com sucesso.` };
   }
 
   async monitorarOcupacao(id: number) {
     const usuario = await this.findOne(id);
     this.ensureAdmin(usuario);
-    return this.estacionamentoService.monitorarVagas(usuario.id_estacionamento);
+    const monitoramento = await this.estacionamentoService.monitorarVagas(
+      usuario.id_estacionamento,
+    );
+
+    await this.operacaoService.registrar({
+      tipo: 'ESTACIONAMENTO',
+      descricao: `Ocupacao do estacionamento ${usuario.id_estacionamento} monitorada.`,
+      id_usuario: usuario.id,
+      entidade: 'Estacionamento',
+      id_entidade: usuario.id_estacionamento,
+      dados: monitoramento,
+    });
+
+    return monitoramento;
   }
 
   async gerarRelatorio(id: number) {
     const usuario = await this.findOne(id);
     this.ensureAdmin(usuario);
-    return this.estacionamentoService.gerarRelatorios(
+    const relatorio = await this.estacionamentoService.gerarRelatorios(
       usuario.id_estacionamento,
     );
+
+    await this.operacaoService.registrar({
+      tipo: 'RELATORIO',
+      descricao: `Relatorio do estacionamento ${usuario.id_estacionamento} gerado.`,
+      id_usuario: usuario.id,
+      entidade: 'Estacionamento',
+      id_entidade: usuario.id_estacionamento,
+      dados: relatorio,
+    });
+
+    return relatorio;
   }
 
   private async ensureEmailAvailable(email?: string): Promise<void> {
