@@ -14,10 +14,29 @@ import {
 import './ClientDashboard.css';
 
 const defaultCenter = [-23.55052, -46.633308];
+const locationStorageKey = 'parkq_user_location';
 
 const toNumber = (value) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getStoredLocation = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(locationStorageKey) || 'null');
+
+    if (
+      Array.isArray(parsed) &&
+      parsed.length === 2 &&
+      parsed.every((coordinate) => Number.isFinite(Number(coordinate)))
+    ) {
+      return parsed.map(Number);
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 };
 
 const formatMoney = (value) =>
@@ -35,14 +54,11 @@ const normalizeStatus = (value) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
-const MapFocusController = ({ parking, focusKey }) => {
+const MapFocusController = ({ lat, lng, focusKey }) => {
   const map = useMap();
 
   useEffect(() => {
-    const lat = toNumber(parking?.latitude);
-    const lng = toNumber(parking?.longitude);
-
-    if (!lat || !lng) {
+    if (!focusKey || !lat || !lng) {
       return;
     }
 
@@ -50,7 +66,24 @@ const MapFocusController = ({ parking, focusKey }) => {
       animate: true,
       duration: 0.7,
     });
-  }, [focusKey, map, parking]);
+  }, [focusKey, lat, lng, map]);
+
+  return null;
+};
+
+const UserLocationFocusController = ({ userLocation, focusKey }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!userLocation || !focusKey) {
+      return;
+    }
+
+    map.flyTo(userLocation, 16, {
+      animate: true,
+      duration: 0.7,
+    });
+  }, [focusKey, map, userLocation]);
 
   return null;
 };
@@ -87,6 +120,7 @@ const ClientDashboard = () => {
   const userId = localStorage.getItem('userId');
   const role = localStorage.getItem('role');
   const canReserve = role === 'CLIENT';
+  const storedLocation = useMemo(() => getStoredLocation(), []);
   const [activeView, setActiveView] = useState('buscar');
   const [estacionamentos, setEstacionamentos] = useState([]);
   const [planos, setPlanos] = useState([]);
@@ -97,8 +131,13 @@ const ClientDashboard = () => {
   const [loadingVagas, setLoadingVagas] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedParkingId, setSelectedParkingId] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationState, setLocationState] = useState('checking');
+  const [userLocation, setUserLocation] = useState(storedLocation);
+  const [locationFocusKey, setLocationFocusKey] = useState(0);
+  const [parkingFocusKey, setParkingFocusKey] = useState(0);
+  const [locationState, setLocationState] = useState(
+    storedLocation ? 'granted' : 'checking',
+  );
+  const [searchRadiusKm, setSearchRadiusKm] = useState(5);
   const [status, setStatus] = useState('');
   const [tarifaForm, setTarifaForm] = useState({
     planoId: '',
@@ -139,7 +178,7 @@ const ClientDashboard = () => {
     }
   }, [canReserve, userId]);
 
-  const requestLocation = useCallback(() => {
+  const requestLocation = useCallback((shouldFocusMap = false) => {
     if (!navigator.geolocation) {
       setLocationState('unavailable');
       return;
@@ -148,7 +187,12 @@ const ClientDashboard = () => {
     setLocationState('checking');
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setUserLocation([coords.latitude, coords.longitude]);
+        const nextLocation = [coords.latitude, coords.longitude];
+        localStorage.setItem(locationStorageKey, JSON.stringify(nextLocation));
+        setUserLocation(nextLocation);
+        if (shouldFocusMap) {
+          setLocationFocusKey((current) => current + 1);
+        }
         setLocationState('granted');
       },
       () => {
@@ -217,13 +261,19 @@ const ClientDashboard = () => {
     () =>
       estacionamentos.filter((estacionamento) => {
         const term = searchTerm.toLowerCase();
+        const isInsideRadius =
+          !userLocation ||
+          estacionamento.distanciaKm === undefined ||
+          Number(estacionamento.distanciaKm) <= searchRadiusKm;
+
         return (
-          estacionamento.nome?.toLowerCase().includes(term) ||
-          estacionamento.localizacao?.toLowerCase().includes(term) ||
-          estacionamento.categoria?.toLowerCase().includes(term)
+          isInsideRadius &&
+          (estacionamento.nome?.toLowerCase().includes(term) ||
+            estacionamento.localizacao?.toLowerCase().includes(term) ||
+            estacionamento.categoria?.toLowerCase().includes(term))
         );
       }),
-    [estacionamentos, searchTerm],
+    [estacionamentos, searchRadiusKm, searchTerm, userLocation],
   );
 
   const selectedParking = selectedParkingId
@@ -301,6 +351,7 @@ const ClientDashboard = () => {
     }
 
     setSelectedParkingId(parking.id);
+    setParkingFocusKey((current) => current + 1);
   };
 
   const handleSelectParking = (parking) => {
@@ -426,8 +477,13 @@ const ClientDashboard = () => {
               <div className="map-panel">
                 <MapContainer center={mapCenter} zoom={13} scrollWheelZoom>
                   <MapFocusController
-                    parking={selectedParking}
-                    focusKey={`${selectedParkingId || ''}-${selectedVagaId || ''}`}
+                    lat={toNumber(selectedParking?.latitude)}
+                    lng={toNumber(selectedParking?.longitude)}
+                    focusKey={parkingFocusKey}
+                  />
+                  <UserLocationFocusController
+                    userLocation={userLocation}
+                    focusKey={locationFocusKey}
                   />
                   <TileLayer
                     attribution="&copy; OpenStreetMap contributors"
@@ -493,10 +549,29 @@ const ClientDashboard = () => {
                       {filteredEstacionamentos.length}{' '}
                       {userLocation ? 'proximos' : 'cadastrados'}
                     </span>
-                    <button type="button" onClick={requestLocation}>
+                    <button type="button" onClick={() => requestLocation(true)}>
                       Minha localizacao
                     </button>
                   </div>
+                  {userLocation && (
+                    <label className="radius-control" htmlFor="parking-radius">
+                      <span>
+                        Alcance
+                        <strong>{searchRadiusKm} km</strong>
+                      </span>
+                      <input
+                        id="parking-radius"
+                        type="range"
+                        min="1"
+                        max="600"
+                        step="1"
+                        value={searchRadiusKm}
+                        onChange={(event) =>
+                          setSearchRadiusKm(Number(event.target.value))
+                        }
+                      />
+                    </label>
+                  )}
                 </div>
 
                 {locationState === 'unavailable' && (
@@ -530,7 +605,11 @@ const ClientDashboard = () => {
                     );
                   })}
                   {filteredEstacionamentos.length === 0 && (
-                    <p className="empty-results">Nenhum estacionamento nessa busca.</p>
+                    <p className="empty-results">
+                      {userLocation
+                        ? 'Nenhum estacionamento dentro desse alcance.'
+                        : 'Nenhum estacionamento nessa busca.'}
+                    </p>
                   )}
                 </div>
               </aside>

@@ -92,10 +92,11 @@ export class EstacionamentoService {
   async findNearby(
     latitude: number,
     longitude: number,
+    raioKm?: number,
   ): Promise<EstacionamentoComDistancia[]> {
     const estacionamentos = await this.estacionamentoRepository.findAll();
 
-    return estacionamentos
+    const sortedEstacionamentos = estacionamentos
       .filter(
         (estacionamento) =>
           estacionamento.latitude !== null && estacionamento.longitude !== null,
@@ -115,6 +116,16 @@ export class EstacionamentoService {
         } as EstacionamentoComDistancia;
       })
       .sort((a, b) => a.distanciaKm - b.distanciaKm);
+
+    if (!Number.isFinite(raioKm)) {
+      return sortedEstacionamentos;
+    }
+
+    const safeRadiusKm = Math.max(0.5, Math.min(raioKm, 600));
+
+    return sortedEstacionamentos.filter(
+      (estacionamento) => estacionamento.distanciaKm <= safeRadiusKm,
+    );
   }
 
   private async withGeocodedCoordinates(

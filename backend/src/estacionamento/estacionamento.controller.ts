@@ -79,11 +79,22 @@ export class EstacionamentoController {
     example: -46.633308,
     description: 'Longitude atual do usuario',
   })
+  @ApiQuery({
+    name: 'raioKm',
+    required: false,
+    example: 5,
+    description: 'Raio maximo de busca em quilometros',
+  })
   async findNearby(
     @Query('lat', ParseFloatPipe) latitude: number,
     @Query('lng', ParseFloatPipe) longitude: number,
+    @Query('raioKm') raioKm?: string,
   ) {
-    return this.estacionamentoService.findNearby(latitude, longitude);
+    return this.estacionamentoService.findNearby(
+      latitude,
+      longitude,
+      raioKm === undefined ? undefined : Number(raioKm),
+    );
   }
 
   @Get(':id')

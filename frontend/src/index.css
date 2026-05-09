@@ -1,4 +1,7 @@
 :root {
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -7,12 +10,48 @@
   color: #333; /* Ajustado para melhor legibilidade */
   background-color:white; /* Cor do fundo conforme o design */
 
+=======
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+  --park-bg: #f3f4f6;
+  --park-surface: #ffffff;
+  --park-surface-muted: #f8fafc;
+  --park-border: #d5deea;
+  --park-border-soft: #edf2f7;
+  --park-text: #172033;
+  --park-muted: #5d6b7d;
+  --park-primary: #020203;
+  --park-primary-hover: #262626;
+  --park-accent: #0f766e;
+  --park-danger: #b91c1c;
+  --park-alert-bg: #fff7ed;
+  --park-alert-text: #9a3412;
+  --park-radius: 8px;
+  --park-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--park-text);
+  background: var(--park-bg);
+<<<<<<< ours
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
 a {
   font-weight: 500;
   color: #616161; /* Cor de link mais suave */
@@ -95,4 +134,60 @@ button:hover {
     background-color: #020203; /* Mantendo o botão com fundo escuro */
     color: white;
   }
+=======
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--park-bg);
+  color: var(--park-text);
+  text-align: left;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  min-height: 40px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--park-primary);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+<<<<<<< ours
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
 }
