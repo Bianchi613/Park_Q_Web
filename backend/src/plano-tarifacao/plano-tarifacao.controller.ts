@@ -7,14 +7,19 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { PlanoTarifacao } from './plano-tarifacao.model';
 import { PlanoTarifacaoService } from './plano-tarifacao.service';
 
@@ -24,7 +29,11 @@ export class PlanoTarifacaoController {
   constructor(private readonly planoTarifacaoService: PlanoTarifacaoService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Retorna todos os planos de tarifacao' })
+  @ApiOperation({
+    summary: 'Retorna todos os planos de tarifacao',
+    description:
+      'Consulta publica para visitantes e clientes avaliarem os valores antes de reservar.',
+  })
   async findAll(): Promise<PlanoTarifacao[]> {
     return this.planoTarifacaoService.findAll();
   }
@@ -39,6 +48,9 @@ export class PlanoTarifacaoController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cria um novo plano de tarifacao' })
   @ApiResponse({ status: 201, description: 'Plano criado com sucesso.' })
   @ApiBody({
@@ -59,6 +71,9 @@ export class PlanoTarifacaoController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualiza um plano de tarifacao' })
   @ApiParam({ name: 'id', description: 'ID do plano de tarifacao' })
   async update(
@@ -69,6 +84,9 @@ export class PlanoTarifacaoController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Exclui um plano de tarifacao pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do plano de tarifacao' })
   async remove(@Param('id', ParseIntPipe) id: number) {
@@ -77,7 +95,11 @@ export class PlanoTarifacaoController {
   }
 
   @Post(':id/calcular-tarifa')
-  @ApiOperation({ summary: 'Calcula a tarifa pela duracao e tipo de vaga' })
+  @ApiOperation({
+    summary: 'Calcula a tarifa pela duracao e tipo de vaga',
+    description:
+      'Rota publica. VISITOR pode simular preco, mas nao pode efetivar reserva ou pagamento.',
+  })
   @ApiParam({ name: 'id', description: 'ID do plano de tarifacao' })
   @ApiBody({
     schema: {

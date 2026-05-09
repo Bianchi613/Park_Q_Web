@@ -8,8 +8,10 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -17,6 +19,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { Operacao, OperacaoTipo } from './operacao.model';
 import { OperacaoService } from './operacao.service';
 
@@ -26,6 +31,9 @@ export class OperacaoController {
   constructor(private readonly operacaoService: OperacaoService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cria uma nova operacao' })
   @ApiResponse({ status: 201, description: 'Operacao criada com sucesso.' })
   @ApiBody({
@@ -46,6 +54,9 @@ export class OperacaoController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Retorna todas as operacoes' })
   @ApiQuery({ name: 'id_usuario', required: false, example: 1 })
   @ApiQuery({ name: 'tipo', required: false, example: 'RESERVA' })
@@ -66,6 +77,9 @@ export class OperacaoController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Retorna uma operacao pelo ID' })
   @ApiParam({ name: 'id', description: 'ID da operacao' })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<Operacao> {
@@ -73,6 +87,9 @@ export class OperacaoController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualiza os dados de uma operacao' })
   @ApiParam({ name: 'id', description: 'ID da operacao' })
   async update(
@@ -83,6 +100,9 @@ export class OperacaoController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Exclui uma operacao pelo ID' })
   @ApiParam({ name: 'id', description: 'ID da operacao' })
   async remove(@Param('id', ParseIntPipe) id: number) {

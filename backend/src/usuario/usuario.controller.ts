@@ -2,19 +2,26 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseIntPipe,
   Post,
   Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { Usuario } from './usuario.model';
 import { UsuarioService } from './usuario.service';
 
@@ -49,6 +56,9 @@ export class UsuarioController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Retorna todos os usuarios' })
   @ApiResponse({
     status: 200,
@@ -60,16 +70,21 @@ export class UsuarioController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Retorna um usuario pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do usuario' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado.' })
   @ApiResponse({ status: 404, description: 'Usuario nao encontrado.' })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    this.ensureSelfOrAdmin(id, req.user);
     const usuario = await this.usuarioService.findOne(id);
     return this.serialize(usuario);
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualiza os dados de um usuario' })
   @ApiParam({ name: 'id', description: 'ID do usuario' })
   @ApiResponse({ status: 200, description: 'Usuario atualizado com sucesso.' })
@@ -77,12 +92,17 @@ export class UsuarioController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: Partial<Usuario>,
+    @Req() req: any,
   ) {
+    this.ensureSelfOrAdmin(id, req.user);
     const usuario = await this.usuarioService.update(id, data);
     return this.serialize(usuario);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Exclui um usuario pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do usuario' })
   @ApiResponse({ status: 200, description: 'Usuario excluido com sucesso.' })
@@ -92,6 +112,9 @@ export class UsuarioController {
   }
 
   @Post(':id/reservar-vaga')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CLIENT')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Reserva uma vaga para um usuario CLIENT' })
   @ApiParam({ name: 'id', description: 'ID do usuario' })
   @ApiBody({
@@ -105,11 +128,19 @@ export class UsuarioController {
       },
     },
   })
-  async reservarVaga(@Param('id', ParseIntPipe) id: number, @Body() data: any) {
+  async reservarVaga(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: any,
+    @Req() req: any,
+  ) {
+    this.ensureSelfOrAdmin(id, req.user);
     return this.usuarioService.reservarVaga(id, data);
   }
 
   @Post(':id/cancelar-reserva')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CLIENT')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancela uma reserva de um usuario CLIENT' })
   @ApiParam({ name: 'id', description: 'ID do usuario' })
   @ApiBody({
@@ -122,20 +153,32 @@ export class UsuarioController {
   async cancelarReserva(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: any,
+    @Req() req: any,
   ) {
+    this.ensureSelfOrAdmin(id, req.user);
     return this.usuarioService.cancelarReserva(id, data);
   }
 
   @Get(':id/reservas')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CLIENT', 'ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Retorna o historico de reservas do usuario CLIENT',
   })
   @ApiParam({ name: 'id', description: 'ID do usuario' })
-  async historicoReservas(@Param('id', ParseIntPipe) id: number) {
+  async historicoReservas(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    this.ensureSelfOrAdmin(id, req.user);
     return this.usuarioService.historicoReservas(id);
   }
 
   @Post(':id/adicionar-vaga')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Adiciona uma vaga como usuario ADMIN' })
   @ApiParam({ name: 'id', description: 'ID do usuario admin' })
   @ApiBody({
@@ -155,6 +198,9 @@ export class UsuarioController {
   }
 
   @Delete(':id/remover-vaga/:vagaId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove uma vaga como usuario ADMIN' })
   @ApiParam({ name: 'id', description: 'ID do usuario admin' })
   @ApiParam({ name: 'vagaId', description: 'ID da vaga' })
@@ -166,6 +212,9 @@ export class UsuarioController {
   }
 
   @Get(':id/monitorar-ocupacao')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Monitora a ocupacao como usuario ADMIN' })
   @ApiParam({ name: 'id', description: 'ID do usuario admin' })
   async monitorarOcupacao(@Param('id', ParseIntPipe) id: number) {
@@ -173,6 +222,9 @@ export class UsuarioController {
   }
 
   @Get(':id/relatorio')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Gera relatorio como usuario ADMIN' })
   @ApiParam({ name: 'id', description: 'ID do usuario admin' })
   async gerarRelatorio(@Param('id', ParseIntPipe) id: number) {
@@ -183,5 +235,13 @@ export class UsuarioController {
     const plain = usuario.get ? usuario.get({ plain: true }) : usuario;
     delete plain.senha;
     return plain;
+  }
+
+  private ensureSelfOrAdmin(id: number, user: any): void {
+    if (user?.role === 'ADMIN' || user?.id === id) {
+      return;
+    }
+
+    throw new ForbiddenException('Acesso negado para este usuario.');
   }
 }

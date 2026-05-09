@@ -160,6 +160,15 @@ Usuario `CLIENT`:
 - Consulta de historico de reservas
 - Recebimento de notificacoes
 
+Usuario `VISITOR`:
+
+- Login/cadastro com perfil limitado
+- Consulta de estacionamentos
+- Consulta de vagas disponiveis
+- Consulta de planos de tarifacao
+- Calculo de tarifa
+- Nao pode reservar, pagar ou cancelar reservas
+
 Usuario `ADMIN`:
 
 - Dashboard administrativo
@@ -181,6 +190,7 @@ No codigo NestJS, os metodos de negocio ficam nos `Services`. Os `Models` repres
 | `Usuario` | `id`, `CPF`, `nome`, `email`, `telefone`, `login`, `senha`, `role`, `preferencias`, `cargo`, `privilegios`, `id_estacionamento`, `reservas`, `operacoes`, `notificacoes` | `reservarVaga()`, `cancelarReserva()`, `historicoReservas()`, `adicionarVaga()`, `removerVaga()`, `monitorarOcupacao()`, `gerarRelatorio()` |
 | `Administrador` | Nao existe como tabela separada. E um `Usuario` com `role = ADMIN`, `cargo`, `privilegios` e `id_estacionamento` | Usa as acoes administrativas do `UsuarioService` |
 | `Cliente` | Nao existe como tabela separada. E um `Usuario` com `role = CLIENT` | Reserva vaga, cancela reserva, consulta historico e realiza pagamento |
+| `Visitante` | Nao existe como tabela separada. E um `Usuario` com `role = VISITOR` | Consulta estacionamentos, vagas e tarifas, mas nao realiza reserva nem pagamento |
 | `PlanoTarifacao` | `id`, `descricao`, `data_vigencia`, `taxa_base`, `taxa_hora`, `taxa_diaria`, `reservas` | `calcularTarifa()`, `calcularTarifaDetalhada()`, `calcularDuracaoHoras()` |
 | `Reserva` | `id`, `data_reserva`, `data_fim`, `valor`, `status`, `id_usuario`, `id_vaga`, `id_plano`, `usuario`, `vaga`, `plano`, `notificacoes` | `createReserva()`, `updateReserva()`, `cancelarReserva()`, `monitorarTempo()`, `monitorarReservas()`, calculo automatico de valor |
 | `Pagamento` | `id`, `id_reserva`, `metodo_pagamento`, `valor_pago`, `data_hora`, `reserva` | `registrarPagamento()`, `validarPagamento()`, CRUD de pagamentos |
@@ -201,6 +211,8 @@ No codigo NestJS, os metodos de negocio ficam nos `Services`. Os `Models` repres
 - `Operacao` virou trilha de auditoria real do sistema.
 - `Notificacao` foi adicionada para mensagens de cadastro, reserva, pagamento, cancelamento e expiracao.
 - `monitorarTempo()` foi implementado para reservas; reservas expiradas podem ser marcadas como `EXPIRADA` e ter a vaga liberada.
+- Rotas sensiveis foram protegidas com JWT e `role` (`ADMIN` ou `CLIENT`).
+- Clientes autenticados so podem acessar seus proprios usuarios, reservas, pagamentos e notificacoes; administradores possuem acesso de gestao.
 
 ## Principais endpoints da API
 
@@ -209,6 +221,14 @@ Autenticacao:
 | Metodo | Endpoint | Descricao |
 | --- | --- | --- |
 | `POST` | `/auth/login` | Realiza login e retorna token JWT |
+
+Rotas protegidas usam Bearer token:
+
+```http
+Authorization: Bearer seu_token_jwt
+```
+
+Rotas de escrita administrativa exigem `role = ADMIN`. Rotas de reserva/pagamento/notificacao do cliente exigem `role = CLIENT` e validam o dono do recurso quando aplicavel. `VISITOR` pode consultar dados publicos do app, como estacionamentos, vagas disponiveis, planos e calculo de tarifa.
 
 Usuarios:
 

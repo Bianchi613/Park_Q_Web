@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { NotificacaoService } from '../notificacao/notificacao.service';
 import { OperacaoService } from '../operacao/operacao.service';
 import { ReservaService } from '../reserva/reserva.service';
@@ -16,6 +20,18 @@ export class PagamentoService {
 
   async createPagamento(data: Partial<Pagamento>): Promise<Pagamento> {
     return this.registrarPagamento(data);
+  }
+
+  async createPagamentoAutorizado(
+    data: Partial<Pagamento>,
+    usuario: { id: number; role: string },
+  ): Promise<Pagamento> {
+    const payload = this.normalizePayload(data);
+    const reserva = await this.reservaService.findReservaById(
+      payload.id_reserva,
+    );
+    this.ensureReservaOwnerOrAdmin(reserva.id_usuario, usuario);
+    return this.registrarPagamento(payload);
   }
 
   async registrarPagamento(data: Partial<Pagamento>): Promise<Pagamento> {
@@ -52,6 +68,18 @@ export class PagamentoService {
 
   async getPagamentoById(id: number): Promise<Pagamento> {
     return this.pagamentoRepository.findById(id);
+  }
+
+  async getPagamentoByIdAutorizado(
+    id: number,
+    usuario: { id: number; role: string },
+  ): Promise<Pagamento> {
+    const pagamento = await this.pagamentoRepository.findById(id);
+    const reserva = await this.reservaService.findReservaById(
+      pagamento.id_reserva,
+    );
+    this.ensureReservaOwnerOrAdmin(reserva.id_usuario, usuario);
+    return pagamento;
   }
 
   async updatePagamento(
@@ -122,5 +150,16 @@ export class PagamentoService {
     }
 
     return value;
+  }
+
+  private ensureReservaOwnerOrAdmin(
+    idUsuarioReserva: number,
+    usuario: { id: number; role: string },
+  ): void {
+    if (usuario?.role === 'ADMIN' || usuario?.id === idUsuarioReserva) {
+      return;
+    }
+
+    throw new ForbiddenException('Acesso negado para este pagamento.');
   }
 }

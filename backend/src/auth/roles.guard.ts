@@ -1,39 +1,37 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const requiredRoles = this.reflector.get<string[]>(
-      'roles',
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
-    );
+      context.getClass(),
+    ]);
 
     if (!requiredRoles) {
-      return true; // ✅ Se não houver roles definidas, qualquer um pode acessar
+      return true;
     }
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('Acesso negado: Usuário não autenticado.');
+      throw new ForbiddenException('Acesso negado: Usuario nao autenticado.');
     }
 
-    const hasRole = requiredRoles.includes(user.role);
-
-    if (!hasRole) {
-      throw new ForbiddenException('Acesso negado: Permissão insuficiente.');
+    if (!requiredRoles.includes(user.role)) {
+      throw new ForbiddenException('Acesso negado: Permissao insuficiente.');
     }
 
     return true;

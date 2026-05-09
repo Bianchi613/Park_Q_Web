@@ -8,14 +8,19 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { Vaga } from './vaga.model';
 import { VagaService } from './vaga.service';
 
@@ -25,7 +30,11 @@ export class VagaController {
   constructor(private readonly vagaService: VagaService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Retorna vagas, opcionalmente por estacionamento' })
+  @ApiOperation({
+    summary: 'Retorna vagas, opcionalmente por estacionamento',
+    description:
+      'Consulta publica para CLIENT, VISITOR ou usuario nao autenticado visualizar disponibilidade.',
+  })
   @ApiResponse({ status: 200, description: 'Lista de vagas retornada.' })
   async findAll(
     @Query('id_estacionamento') idEstacionamento?: string,
@@ -36,7 +45,11 @@ export class VagaController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Retorna uma vaga pelo ID' })
+  @ApiOperation({
+    summary: 'Retorna uma vaga pelo ID',
+    description:
+      'Consulta publica. A reserva da vaga continua restrita a usuarios CLIENT.',
+  })
   @ApiParam({ name: 'id', description: 'ID da vaga' })
   @ApiResponse({ status: 200, description: 'Vaga encontrada.' })
   @ApiResponse({ status: 404, description: 'Vaga nao encontrada.' })
@@ -45,6 +58,9 @@ export class VagaController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cria uma nova vaga' })
   @ApiResponse({ status: 201, description: 'Vaga criada com sucesso.' })
   @ApiResponse({ status: 400, description: 'Dados invalidos.' })
@@ -64,6 +80,9 @@ export class VagaController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualiza os dados de uma vaga' })
   @ApiParam({ name: 'id', description: 'ID da vaga' })
   @ApiResponse({ status: 200, description: 'Vaga atualizada com sucesso.' })
@@ -76,6 +95,9 @@ export class VagaController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Exclui uma vaga pelo ID' })
   @ApiParam({ name: 'id', description: 'ID da vaga' })
   @ApiResponse({ status: 200, description: 'Vaga excluida com sucesso.' })
@@ -85,6 +107,9 @@ export class VagaController {
   }
 
   @Post(':id/reservar')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Reserva uma vaga pelo ID' })
   @ApiParam({ name: 'id', description: 'ID da vaga' })
   @ApiResponse({ status: 200, description: 'Vaga reservada com sucesso.' })
@@ -96,6 +121,9 @@ export class VagaController {
   }
 
   @Post(':id/liberar')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Libera uma vaga pelo ID' })
   @ApiParam({ name: 'id', description: 'ID da vaga' })
   @ApiResponse({ status: 200, description: 'Vaga liberada com sucesso.' })

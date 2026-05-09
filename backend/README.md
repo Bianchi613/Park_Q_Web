@@ -47,6 +47,20 @@ URLs:
 - API: `http://localhost:3000`
 - Swagger: `http://localhost:3000/api/docs`
 
+## Autenticacao e permissoes
+
+O login retorna um JWT em `/auth/login`. Rotas protegidas devem receber:
+
+```http
+Authorization: Bearer seu_token_jwt
+```
+
+Perfis:
+
+- `ADMIN`: gerencia usuarios, vagas, estacionamentos, relatorios, operacoes e notificacoes.
+- `CLIENT`: cria/cancela reservas, registra pagamentos e consulta seus proprios dados.
+- `VISITOR`: visitante esporadico/logado; consulta estacionamentos, vagas e tarifas, mas nao reserva nem paga.
+
 ## Modulos
 
 | Modulo | Responsabilidade |

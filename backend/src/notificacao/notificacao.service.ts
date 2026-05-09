@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import {
   Notificacao,
   NOTIFICACAO_TIPOS,
@@ -62,9 +66,26 @@ export class NotificacaoService {
     return this.notificacaoRepository.marcarComoLida(id);
   }
 
+  async marcarComoLidaAutorizada(
+    id: number,
+    usuario: { id: number; role: string },
+  ): Promise<Notificacao> {
+    const notificacao = await this.notificacaoRepository.findById(id);
+    this.ensureOwnerOrAdmin(notificacao.id_usuario, usuario);
+    return this.notificacaoRepository.marcarComoLida(id);
+  }
+
   async marcarTodasComoLidas(idUsuario: number): Promise<{ message: string }> {
     await this.notificacaoRepository.marcarTodasComoLidas(idUsuario);
     return { message: 'Notificacoes marcadas como lidas.' };
+  }
+
+  async marcarTodasComoLidasAutorizada(
+    idUsuario: number,
+    usuario: { id: number; role: string },
+  ): Promise<{ message: string }> {
+    this.ensureOwnerOrAdmin(idUsuario, usuario);
+    return this.marcarTodasComoLidas(idUsuario);
   }
 
   async remove(id: number): Promise<void> {
@@ -175,5 +196,16 @@ export class NotificacaoService {
     if (data.tipo && !NOTIFICACAO_TIPOS.includes(data.tipo)) {
       throw new BadRequestException('tipo de notificacao invalido.');
     }
+  }
+
+  private ensureOwnerOrAdmin(
+    idUsuario: number,
+    usuario: { id: number; role: string },
+  ): void {
+    if (usuario?.role === 'ADMIN' || usuario?.id === idUsuario) {
+      return;
+    }
+
+    throw new ForbiddenException('Acesso negado para estas notificacoes.');
   }
 }

@@ -94,15 +94,19 @@ export class UsuarioService {
       );
     }
 
-    const reserva = await this.reservaService.createReserva({
+    const reservaPayload = {
       id_usuario: usuario.id,
       id_vaga: vaga.id,
       id_plano: data.id_plano ?? data.plano_id,
       data_reserva:
         data.data_reserva ?? data.dataReserva ?? data.dataInicio ?? new Date(),
       data_fim: data.data_fim ?? data.dataFim ?? null,
-      valor: data.valor ?? 0,
-    });
+      ...(data.valor !== undefined && data.valor !== null
+        ? { valor: data.valor }
+        : {}),
+    };
+
+    const reserva = await this.reservaService.createReserva(reservaPayload);
 
     await this.vagaService.reservar(vaga.id, reserva.id);
     return reserva;
