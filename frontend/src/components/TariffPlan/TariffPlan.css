@@ -62,7 +62,8 @@
   gap: 12px;
 }
 
-.tariff-form input {
+.tariff-form input,
+.tariff-form select {
   width: 100%;
   padding: 12px;
   border: 1px solid #c8d3e0;

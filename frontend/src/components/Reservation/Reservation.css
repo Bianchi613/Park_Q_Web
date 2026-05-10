@@ -96,6 +96,30 @@
   color: #172033;
 }
 
+.selected-plan {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.selected-plan strong {
+  color: #172033;
+}
+
+.selected-plan small {
+  color: #5b677a;
+}
+
+.reservation-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .summary-line,
 .summary-total {
   display: flex;

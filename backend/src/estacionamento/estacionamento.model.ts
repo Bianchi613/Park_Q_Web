@@ -1,4 +1,5 @@
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
+import { PlanoTarifacao } from '../plano-tarifacao/plano-tarifacao.model';
 import { Usuario } from '../usuario/usuario.model';
 import { Vaga } from '../vaga/vaga.model';
 
@@ -59,4 +60,7 @@ export class Estacionamento extends Model<Estacionamento> {
 
   @HasMany(() => Vaga)
   vagas: Vaga[];
+
+  @HasMany(() => PlanoTarifacao)
+  planos: PlanoTarifacao[];
 }

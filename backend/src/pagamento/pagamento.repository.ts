@@ -13,9 +13,23 @@ export class PagamentoRepository {
     return this.pagamentoModel.create(data);
   }
 
-  async findAll(): Promise<Pagamento[]> {
+  async findAll(idEstacionamento?: number): Promise<Pagamento[]> {
     return this.pagamentoModel.findAll({
-      include: ['reserva'],
+      include: [
+        {
+          association: 'reserva',
+          include: [
+            {
+              association: 'vaga',
+              ...(idEstacionamento
+                ? { where: { id_estacionamento: idEstacionamento } }
+                : {}),
+              required: !!idEstacionamento,
+            },
+          ],
+          required: !!idEstacionamento,
+        },
+      ],
       order: [['id', 'DESC']],
     });
   }

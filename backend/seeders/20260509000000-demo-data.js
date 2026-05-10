@@ -45,9 +45,10 @@ module.exports = {
       await queryInterface.sequelize.query(
         `
         INSERT INTO "PlanoTarifacaos"
-          ("descricao", "data_vigencia", "taxa_base", "taxa_hora", "taxa_diaria", "createdAt", "updatedAt")
+          ("descricao", "id_estacionamento", "data_vigencia", "taxa_base", "taxa_hora", "taxa_diaria", "createdAt", "updatedAt")
         SELECT
           'Plano padrao',
+          :estacionamentoId,
           :now,
           5.00,
           8.00,
@@ -55,10 +56,11 @@ module.exports = {
           :now,
           :now
         WHERE NOT EXISTS (
-          SELECT 1 FROM "PlanoTarifacaos" WHERE "descricao" = 'Plano padrao'
+          SELECT 1 FROM "PlanoTarifacaos"
+          WHERE "id_estacionamento" = :estacionamentoId
         );
         `,
-        { replacements: { now }, transaction },
+        { replacements: { estacionamentoId, now }, transaction },
       );
 
       for (let numero = 1; numero <= 5; numero += 1) {

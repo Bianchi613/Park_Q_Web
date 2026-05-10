@@ -46,15 +46,20 @@ export class NotificacaoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lista notificacoes' })
   @ApiQuery({ name: 'id_usuario', required: false, example: 1 })
+  @ApiQuery({ name: 'id_estacionamento', required: false, example: 1 })
   @ApiQuery({ name: 'tipo', required: false, example: 'PAGAMENTO' })
   @ApiQuery({ name: 'lida', required: false, example: false })
   async findAll(
     @Query('id_usuario') idUsuario?: string,
+    @Query('id_estacionamento') idEstacionamento?: string,
     @Query('tipo') tipo?: NotificacaoTipo,
     @Query('lida') lida?: string,
   ): Promise<Notificacao[]> {
     return this.notificacaoService.listar({
       id_usuario: idUsuario ? Number(idUsuario) : undefined,
+      id_estacionamento: idEstacionamento
+        ? Number(idEstacionamento)
+        : undefined,
       tipo,
       lida: lida === undefined ? undefined : lida === 'true',
     });

@@ -122,6 +122,36 @@ module.exports = {
             },
           );
         }
+
+        await queryInterface.sequelize.query(
+          `
+          INSERT INTO "PlanoTarifacaos"
+            ("descricao", "id_estacionamento", "data_vigencia", "taxa_base", "taxa_hora", "taxa_diaria", "createdAt", "updatedAt")
+          SELECT
+            'Plano padrao',
+            :estacionamentoId,
+            :now,
+            :taxaBase,
+            :taxaHora,
+            :taxaDiaria,
+            :now,
+            :now
+          WHERE NOT EXISTS (
+            SELECT 1 FROM "PlanoTarifacaos"
+            WHERE "id_estacionamento" = :estacionamentoId
+          );
+          `,
+          {
+            replacements: {
+              estacionamentoId,
+              now,
+              taxaBase: 5 + (index % 3),
+              taxaHora: 8 + (index % 4),
+              taxaDiaria: 60 + (index % 5) * 5,
+            },
+            transaction,
+          },
+        );
       }
     });
   },

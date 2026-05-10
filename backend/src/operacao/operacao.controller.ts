@@ -61,17 +61,22 @@ export class OperacaoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Retorna todas as operacoes' })
   @ApiQuery({ name: 'id_usuario', required: false, example: 1 })
+  @ApiQuery({ name: 'id_estacionamento', required: false, example: 1 })
   @ApiQuery({ name: 'tipo', required: false, example: 'RESERVA' })
   @ApiQuery({ name: 'entidade', required: false, example: 'Reserva' })
   @ApiQuery({ name: 'id_entidade', required: false, example: 1 })
   async findAll(
     @Query('id_usuario') idUsuario?: string,
+    @Query('id_estacionamento') idEstacionamento?: string,
     @Query('tipo') tipo?: OperacaoTipo,
     @Query('entidade') entidade?: string,
     @Query('id_entidade') idEntidade?: string,
   ): Promise<Operacao[]> {
     return this.operacaoService.findAll({
       id_usuario: idUsuario ? Number(idUsuario) : undefined,
+      id_estacionamento: idEstacionamento
+        ? Number(idEstacionamento)
+        : undefined,
       tipo,
       entidade,
       id_entidade: idEntidade ? Number(idEntidade) : undefined,

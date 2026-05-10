@@ -42,8 +42,18 @@ export class UsuarioService {
     return usuario;
   }
 
-  async findAll(): Promise<Usuario[]> {
-    return this.usuarioRepository.findAll();
+  async findAll(idEstacionamento?: number): Promise<Usuario[]> {
+    if (idEstacionamento === undefined) {
+      return this.usuarioRepository.findAll();
+    }
+
+    const parsedId = Number(idEstacionamento);
+
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+      throw new BadRequestException('id_estacionamento invalido.');
+    }
+
+    return this.usuarioRepository.findAll(parsedId);
   }
 
   async findOne(id: number): Promise<Usuario> {

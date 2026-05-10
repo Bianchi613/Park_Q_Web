@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { QueryTypes } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import { Estacionamento } from './estacionamento.model';
 import { EstacionamentoRepository } from './estacionamento.repository';
 import { GeocodingService } from './geocoding.service';
@@ -10,6 +12,7 @@ export class EstacionamentoService {
   constructor(
     private readonly estacionamentoRepository: EstacionamentoRepository,
     private readonly geocodingService: GeocodingService,
+    private readonly sequelize: Sequelize,
   ) {}
 
   async create(data: Partial<Estacionamento>): Promise<Estacionamento> {
@@ -76,13 +79,37 @@ export class EstacionamentoService {
     const vagasOcupadas = vagas.filter(
       (vaga) => vaga.status === 'ocupada' || vaga.reservada,
     ).length;
+    const financeiro = await this.sequelize.query<{
+      faturamento: string;
+      tempoMedio: string;
+    }>(
+      `
+      SELECT
+        COALESCE(SUM(p."valor_pago"), 0)::text AS "faturamento",
+        COALESCE(
+          AVG(
+            EXTRACT(EPOCH FROM (r."data_fim" - r."data_reserva")) / 60
+          ),
+          0
+        )::text AS "tempoMedio"
+      FROM "Pagamentos" p
+      INNER JOIN "Reservas" r ON r."id" = p."id_reserva"
+      INNER JOIN "Vagas" v ON v."id" = r."id_vaga"
+      WHERE v."id_estacionamento" = :id;
+      `,
+      {
+        replacements: { id },
+        type: QueryTypes.SELECT,
+      },
+    );
+    const totals = financeiro[0] || { faturamento: '0', tempoMedio: '0' };
 
     return {
       ocupacao: totalVagas
         ? Number(((vagasOcupadas / totalVagas) * 100).toFixed(2))
         : 0,
-      faturamento: vagasOcupadas * 10,
-      tempoMedio: vagasOcupadas > 0 ? 120 : 0,
+      faturamento: Number(Number(totals.faturamento).toFixed(2)),
+      tempoMedio: Math.round(Number(totals.tempoMedio || 0)),
       totalVagas,
       vagasOcupadas,
       vagasDisponiveis: totalVagas - vagasOcupadas,

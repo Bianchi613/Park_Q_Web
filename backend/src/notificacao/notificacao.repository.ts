@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { WhereOptions } from 'sequelize';
+import { Op, WhereOptions, literal } from 'sequelize';
 import { Reserva } from '../reserva/reserva.model';
 import { Usuario } from '../usuario/usuario.model';
 import { Notificacao, NotificacaoTipo } from './notificacao.model';
 
 export interface NotificacaoFilters {
   id_usuario?: number;
+  id_estacionamento?: number;
   tipo?: NotificacaoTipo;
   lida?: boolean;
 }
@@ -35,6 +36,32 @@ export class NotificacaoRepository {
 
     if (filters.lida !== undefined) {
       where.lida = filters.lida;
+    }
+
+    if (filters.id_estacionamento) {
+      (where as any)[Op.and] = [
+        {
+          [Op.or]: [
+            literal(`
+              EXISTS (
+                SELECT 1
+                FROM "Usuarios" u
+                WHERE u."id" = "Notificacao"."id_usuario"
+                  AND u."id_estacionamento" = ${filters.id_estacionamento}
+              )
+            `),
+            literal(`
+              EXISTS (
+                SELECT 1
+                FROM "Reservas" r
+                INNER JOIN "Vagas" v ON v."id" = r."id_vaga"
+                WHERE r."id" = "Notificacao"."id_reserva"
+                  AND v."id_estacionamento" = ${filters.id_estacionamento}
+              )
+            `),
+          ],
+        },
+      ];
     }
 
     return this.notificacaoModel.findAll({

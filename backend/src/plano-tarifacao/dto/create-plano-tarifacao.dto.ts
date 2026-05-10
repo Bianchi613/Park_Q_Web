@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsDateString,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -9,6 +10,24 @@ import {
 } from 'class-validator';
 
 export class CreatePlanoTarifacaoDto {
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'Estacionamento dono deste plano de tarifacao.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  id_estacionamento?: number;
+
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'Alias aceito para id_estacionamento.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  idEstacionamento?: number;
+
   @ApiPropertyOptional({ example: 'Plano padrao' })
   @IsOptional()
   @IsString()

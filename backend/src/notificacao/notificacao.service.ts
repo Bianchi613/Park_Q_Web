@@ -55,7 +55,9 @@ export class NotificacaoService {
   }
 
   async listar(filters: NotificacaoFilters = {}): Promise<Notificacao[]> {
-    return this.notificacaoRepository.findAll(filters);
+    return this.notificacaoRepository.findAll(
+      this.normalizeFilters(filters),
+    );
   }
 
   async listarPorUsuario(idUsuario: number): Promise<Notificacao[]> {
@@ -196,6 +198,22 @@ export class NotificacaoService {
     if (data.tipo && !NOTIFICACAO_TIPOS.includes(data.tipo)) {
       throw new BadRequestException('tipo de notificacao invalido.');
     }
+  }
+
+  private normalizeFilters(filters: NotificacaoFilters): NotificacaoFilters {
+    const normalized = { ...filters };
+
+    if (normalized.id_estacionamento !== undefined) {
+      const parsedId = Number(normalized.id_estacionamento);
+
+      if (!Number.isInteger(parsedId) || parsedId <= 0) {
+        throw new BadRequestException('id_estacionamento invalido.');
+      }
+
+      normalized.id_estacionamento = parsedId;
+    }
+
+    return normalized;
   }
 
   private ensureOwnerOrAdmin(

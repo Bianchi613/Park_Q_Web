@@ -19,12 +19,35 @@ export class PlanoTarifacaoService {
     private readonly planoTarifacaoRepository: PlanoTarifacaoRepository,
   ) {}
 
-  async findAll(): Promise<PlanoTarifacao[]> {
-    return this.planoTarifacaoRepository.findAll();
+  async findAll(idEstacionamento?: number): Promise<PlanoTarifacao[]> {
+    const normalizedId =
+      idEstacionamento === undefined
+        ? undefined
+        : this.normalizeEstacionamentoId(idEstacionamento);
+
+    return this.planoTarifacaoRepository.findAll(normalizedId);
   }
 
   async findOne(id: number): Promise<PlanoTarifacao> {
     return this.planoTarifacaoRepository.findOne(id);
+  }
+
+  async findDefaultByEstacionamento(
+    idEstacionamento: number,
+  ): Promise<PlanoTarifacao> {
+    return this.planoTarifacaoRepository.findDefaultByEstacionamento(
+      this.normalizeEstacionamentoId(idEstacionamento),
+    );
+  }
+
+  async ensurePlanoDoEstacionamento(
+    planoId: number,
+    idEstacionamento: number,
+  ): Promise<PlanoTarifacao> {
+    return this.planoTarifacaoRepository.ensurePlanoDoEstacionamento(
+      Number(planoId),
+      this.normalizeEstacionamentoId(idEstacionamento),
+    );
   }
 
   async create(planoTarifacaoData: any): Promise<PlanoTarifacao> {
@@ -91,15 +114,36 @@ export class PlanoTarifacaoService {
     const normalized: Partial<PlanoTarifacao> = {
       ...data,
       data_vigencia: data.data_vigencia ?? data.dataVigencia,
+      id_estacionamento:
+        data.id_estacionamento ??
+        data.idEstacionamento ??
+        data.estacionamento_id,
       taxa_base: data.taxa_base ?? data.taxaBase,
       taxa_hora: data.taxa_hora ?? data.taxaHora,
       taxa_diaria: data.taxa_diaria ?? data.taxaDiaria,
     };
 
     delete (normalized as any).dataVigencia;
+    delete (normalized as any).idEstacionamento;
+    delete (normalized as any).estacionamento_id;
     delete (normalized as any).taxaBase;
     delete (normalized as any).taxaHora;
     delete (normalized as any).taxaDiaria;
+
+    if (
+      normalized.id_estacionamento !== undefined &&
+      normalized.id_estacionamento !== null
+    ) {
+      normalized.id_estacionamento = this.normalizeEstacionamentoId(
+        normalized.id_estacionamento,
+      );
+    }
+
+    if (requireTaxaBase && !normalized.id_estacionamento) {
+      throw new BadRequestException(
+        'id_estacionamento e obrigatorio para vincular o plano ao estacionamento.',
+      );
+    }
 
     if (
       requireTaxaBase &&
@@ -109,5 +153,15 @@ export class PlanoTarifacaoService {
     }
 
     return normalized;
+  }
+
+  private normalizeEstacionamentoId(value: number | string): number {
+    const parsed = Number(value);
+
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      throw new BadRequestException('id_estacionamento invalido.');
+    }
+
+    return parsed;
   }
 }

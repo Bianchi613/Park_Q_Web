@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -37,8 +38,12 @@ export class PlanoTarifacaoController {
     description:
       'Consulta publica para visitantes e clientes avaliarem os valores antes de reservar.',
   })
-  async findAll(): Promise<PlanoTarifacao[]> {
-    return this.planoTarifacaoService.findAll();
+  async findAll(
+    @Query('id_estacionamento') idEstacionamento?: string,
+  ): Promise<PlanoTarifacao[]> {
+    return this.planoTarifacaoService.findAll(
+      idEstacionamento ? Number(idEstacionamento) : undefined,
+    );
   }
 
   @Get(':id')
@@ -60,6 +65,7 @@ export class PlanoTarifacaoController {
     schema: {
       example: {
         descricao: 'Plano horario',
+        id_estacionamento: 1,
         data_vigencia: '2024-12-15',
         taxa_base: 10.0,
         taxa_hora: 5.0,

@@ -43,7 +43,7 @@ const Reservation = () => {
         const [parkingData, vagasData, planosData] = await Promise.all([
           estacionamentosApi.get(id),
           vagasApi.list({ id_estacionamento: id }),
-          planosApi.list(),
+          planosApi.list({ id_estacionamento: id }),
         ]);
 
         setEstacionamento(parkingData);
@@ -53,8 +53,14 @@ const Reservation = () => {
         if (initialVagaId && vagasList.some((vaga) => String(vaga.id) === initialVagaId)) {
           setSelectedVagaId(initialVagaId);
         }
-        setPlanos(Array.isArray(planosData) ? planosData : []);
-        setStatus('');
+        const planosList = Array.isArray(planosData) ? planosData : [];
+        setPlanos(planosList);
+        setSelectedPlanoId(planosList[0]?.id ? String(planosList[0].id) : '');
+        setStatus(
+          planosList.length
+            ? ''
+            : 'Este estacionamento ainda nao tem plano de tarifacao cadastrado.',
+        );
       } catch (error) {
         setStatus(
           error.response?.data?.message ||
@@ -112,8 +118,13 @@ const Reservation = () => {
   );
 
   const criarReserva = async () => {
-    if (!selectedVaga || !selectedPlano) {
-      setStatus('Selecione uma vaga e um plano.');
+    if (!selectedVaga) {
+      setStatus('Selecione uma vaga.');
+      return;
+    }
+
+    if (!selectedPlano) {
+      setStatus('Este estacionamento ainda nao tem plano de tarifacao cadastrado.');
       return;
     }
 
@@ -185,21 +196,20 @@ const Reservation = () => {
                 onChange={(event) => setDataFim(event.target.value)}
               />
             </label>
-            <label>
-              Plano de tarifacao
-              <select
-                value={selectedPlanoId}
-                onChange={(event) => setSelectedPlanoId(event.target.value)}
-              >
-                <option value="">Selecione um plano</option>
-                {planos.map((plano) => (
-                  <option key={plano.id} value={plano.id}>
-                    {plano.descricao || `Plano ${plano.id}`} ·{' '}
-                    {formatMoney(plano.taxa_base)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="selected-plan">
+              <span>Plano de tarifacao deste estacionamento</span>
+              <strong>
+                {selectedPlano?.descricao ||
+                  'Nenhum plano cadastrado para este estacionamento'}
+              </strong>
+              {selectedPlano && (
+                <small>
+                  Base {formatMoney(selectedPlano.taxa_base)} · Hora{' '}
+                  {formatMoney(selectedPlano.taxa_hora)} · Diaria{' '}
+                  {formatMoney(selectedPlano.taxa_diaria)}
+                </small>
+              )}
+            </div>
           </div>
 
           <div className="reservation-card">
@@ -222,7 +232,11 @@ const Reservation = () => {
               <span>Total previsto</span>
               <strong>{formatMoney(tarifa?.valor || selectedPlano?.taxa_base)}</strong>
             </div>
-            <button type="button" onClick={criarReserva}>
+            <button
+              type="button"
+              disabled={!selectedVaga || !selectedPlano}
+              onClick={criarReserva}
+            >
               Criar reserva e pagar
             </button>
           </div>

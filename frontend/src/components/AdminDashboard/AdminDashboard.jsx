@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  FiActivity,
+  FiBell,
+  FiCalendar,
+  FiClipboard,
+  FiCreditCard,
+  FiMapPin,
+  FiRefreshCw,
+  FiSettings,
+  FiUsers,
+} from 'react-icons/fi';
 import Header from '../Layout/Header';
 import {
   estacionamentosApi,
@@ -15,6 +26,17 @@ import {
 import './AdminDashboard.css';
 
 const defaultCenter = [-23.55052, -46.633308];
+const adminDashboardViews = [
+  'operacao',
+  'reservas',
+  'financeiro',
+  'pessoas',
+  'notificacoes',
+  'auditoria',
+];
+
+const getAdminView = (value) =>
+  adminDashboardViews.includes(value) ? value : 'operacao';
 
 const toNumber = (value) => {
   const parsed = Number(value);
@@ -30,11 +52,19 @@ const formatMoney = (value) =>
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString('pt-BR') : '-';
 
+const EmptyState = ({ title, text }) => (
+  <div className="admin-empty">
+    <strong>{title}</strong>
+    <span>{text}</span>
+  </div>
+);
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem('userId');
+  const [searchParams, setSearchParams] = useSearchParams();
   const estacionamentoId = localStorage.getItem('id_estacionamento');
-  const [activeView, setActiveView] = useState('operacao');
+  const requestedView = getAdminView(searchParams.get('view'));
+  const [activeView, setActiveView] = useState(requestedView);
   const [estacionamentos, setEstacionamentos] = useState([]);
   const [selectedParkingId, setSelectedParkingId] = useState(estacionamentoId || '');
   const [vagas, setVagas] = useState([]);
@@ -87,10 +117,18 @@ const AdminDashboard = () => {
         reservasApi.monitoramento(
           targetParkingId ? { id_estacionamento: targetParkingId } : {},
         ),
-        pagamentosApi.list(),
-        notificacoesApi.list(),
-        operacoesApi.list(),
-        usuariosApi.list(),
+        pagamentosApi.list(
+          targetParkingId ? { id_estacionamento: targetParkingId } : {},
+        ),
+        notificacoesApi.list(
+          targetParkingId ? { id_estacionamento: targetParkingId } : {},
+        ),
+        operacoesApi.list(
+          targetParkingId ? { id_estacionamento: targetParkingId } : {},
+        ),
+        usuariosApi.list(
+          targetParkingId ? { id_estacionamento: targetParkingId } : {},
+        ),
       ]);
 
       setEstacionamentos(parkings);
@@ -114,6 +152,15 @@ const AdminDashboard = () => {
     loadDashboard();
   }, [loadDashboard]);
 
+  useEffect(() => {
+    setActiveView(requestedView);
+  }, [requestedView]);
+
+  useEffect(() => {
+    setRelatorio(null);
+    setMonitoramento(null);
+  }, [selectedParkingId]);
+
   const vagasLivres = vagas.filter(
     (vaga) => vaga.status === 'disponivel' && !vaga.reservada,
   ).length;
@@ -124,6 +171,63 @@ const AdminDashboard = () => {
     0,
   );
   const reservasExpiradas = reservas.filter((reserva) => reserva.expirada).length;
+  const notificacoesNovas = notificacoes.filter((notificacao) => !notificacao.lida)
+    .length;
+
+  const adminTabs = useMemo(
+    () => [
+      {
+        id: 'operacao',
+        label: 'Operacao',
+        detail: `${vagas.length} vagas`,
+        count: vagasLivres,
+        icon: <FiActivity />,
+      },
+      {
+        id: 'reservas',
+        label: 'Reservas',
+        detail: `${reservas.length} em monitoramento`,
+        count: reservas.length,
+        icon: <FiCalendar />,
+      },
+      {
+        id: 'financeiro',
+        label: 'Financeiro',
+        detail: formatMoney(faturamento),
+        icon: <FiCreditCard />,
+      },
+      {
+        id: 'pessoas',
+        label: 'Usuarios',
+        detail: `${usuarios.length} cadastrados`,
+        count: usuarios.length,
+        icon: <FiUsers />,
+      },
+      {
+        id: 'notificacoes',
+        label: 'Notificacoes',
+        detail: `${notificacoesNovas} novas`,
+        count: notificacoesNovas,
+        icon: <FiBell />,
+      },
+      {
+        id: 'auditoria',
+        label: 'Auditoria',
+        detail: `${operacoes.length} registros`,
+        count: operacoes.length,
+        icon: <FiClipboard />,
+      },
+    ],
+    [
+      faturamento,
+      notificacoesNovas,
+      operacoes.length,
+      reservas.length,
+      usuarios.length,
+      vagas.length,
+      vagasLivres,
+    ],
+  );
 
   const mapCenter = useMemo(() => {
     const lat = toNumber(selectedParking?.latitude);
@@ -147,8 +251,13 @@ const AdminDashboard = () => {
   };
 
   const monitorarOcupacao = async () => {
+    if (!selectedParking?.id) {
+      setStatus('Selecione um estacionamento.');
+      return;
+    }
+
     try {
-      const data = await usuariosApi.monitorarOcupacao(userId);
+      const data = await estacionamentosApi.monitorar(selectedParking.id);
       setMonitoramento(data);
       setStatus('Monitoramento de ocupacao atualizado.');
     } catch (error) {
@@ -177,6 +286,13 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('view', view);
+    setSearchParams(nextParams);
+  };
+
   return (
     <div className="admin-dashboard">
       <Header />
@@ -187,18 +303,21 @@ const AdminDashboard = () => {
             <p className="eyebrow">Admin</p>
             <h2>Controle operacional do Park Q</h2>
             <p>
-              Mapa, vagas, reservas, pagamentos, usuarios, notificacoes e auditoria
-              em areas separadas.
+              {selectedParking?.nome || 'Selecione um estacionamento'}
+              {selectedParking?.localizacao ? ` - ${selectedParking.localizacao}` : ''}
             </p>
           </div>
           <div className="admin-actions">
             <button type="button" onClick={() => navigate('/estacionamento')}>
+              <FiMapPin />
               Gerenciar vagas
             </button>
             <button type="button" onClick={() => navigate('/tariff-plan')}>
+              <FiSettings />
               Planos
             </button>
             <button type="button" onClick={loadDashboard}>
+              <FiRefreshCw />
               Atualizar
             </button>
           </div>
@@ -210,37 +329,43 @@ const AdminDashboard = () => {
           <div>
             <span>Vagas livres</span>
             <strong>{vagasLivres}</strong>
+            <small>{vagas.length} vagas no total</small>
           </div>
           <div>
             <span>Ocupacao</span>
             <strong>{ocupacao}%</strong>
+            <small>{vagasOcupadas} ocupadas</small>
           </div>
           <div>
             <span>Reservas expiradas</span>
             <strong>{reservasExpiradas}</strong>
+            <small>{reservas.length} monitoradas</small>
           </div>
           <div>
             <span>Faturamento</span>
             <strong>{formatMoney(faturamento)}</strong>
+            <small>{pagamentos.length} pagamentos</small>
           </div>
         </section>
 
         <nav className="admin-tabs" aria-label="Areas administrativas">
-          {[
-            ['operacao', 'Operacao'],
-            ['reservas', `Reservas (${reservas.length})`],
-            ['financeiro', 'Financeiro'],
-            ['pessoas', `Usuarios (${usuarios.length})`],
-            ['notificacoes', `Notificacoes (${notificacoes.length})`],
-            ['auditoria', 'Auditoria'],
-          ].map(([id, label]) => (
+          {adminTabs.map((item) => (
             <button
-              key={id}
-              className={activeView === id ? 'active' : ''}
+              key={item.id}
+              className={activeView === item.id ? 'active' : ''}
               type="button"
-              onClick={() => setActiveView(id)}
+              onClick={() => handleViewChange(item.id)}
             >
-              {label}
+              <span className="admin-tab-icon">{item.icon}</span>
+              <span className="admin-tab-copy">
+                <strong>{item.label}</strong>
+                <small>{item.detail}</small>
+              </span>
+              {item.count !== undefined && (
+                <span className="admin-tab-count">
+                  {item.count > 99 ? '99+' : item.count}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -277,7 +402,9 @@ const AdminDashboard = () => {
                               : '#f97316',
                         }}
                         radius={9}
-                        eventHandlers={{ click: () => setSelectedParkingId(parking.id) }}
+                        eventHandlers={{
+                          click: () => setSelectedParkingId(String(parking.id)),
+                        }}
                       >
                         <Popup>
                           <strong>{parking.nome}</strong>
@@ -341,6 +468,12 @@ const AdminDashboard = () => {
                     <small>{vaga.reservada ? 'Reservada' : vaga.status}</small>
                   </article>
                 ))}
+                {vagas.length === 0 && (
+                  <EmptyState
+                    title="Sem vagas cadastradas"
+                    text="Cadastre vagas para este estacionamento."
+                  />
+                )}
               </div>
             </section>
           </>
@@ -357,13 +490,19 @@ const AdminDashboard = () => {
                 <div key={reserva.id_reserva || reserva.id} className="admin-row">
                   <div>
                     <strong>Reserva #{reserva.id_reserva || reserva.id}</strong>
-                    <span>Usuario #{reserva.id_usuario} · Vaga #{reserva.id_vaga}</span>
+                    <span>Usuario #{reserva.id_usuario} - Vaga #{reserva.id_vaga}</span>
                   </div>
                   <span>{reserva.status}</span>
                   <span>{reserva.tempoRestanteMinutos} min</span>
                   <strong>{reserva.expirada ? 'Expirada' : 'Em andamento'}</strong>
                 </div>
               ))}
+              {reservas.length === 0 && (
+                <EmptyState
+                  title="Sem reservas em monitoramento"
+                  text="Quando houver reservas ativas, elas aparecem aqui."
+                />
+              )}
             </div>
           </section>
         )}
@@ -386,6 +525,12 @@ const AdminDashboard = () => {
                   <strong>{formatMoney(pagamento.valor_pago)}</strong>
                 </div>
               ))}
+              {pagamentos.length === 0 && (
+                <EmptyState
+                  title="Sem pagamentos"
+                  text="Os pagamentos confirmados aparecem nesta aba."
+                />
+              )}
             </div>
           </section>
         )}
@@ -406,6 +551,12 @@ const AdminDashboard = () => {
                   <small>{usuario.role}</small>
                 </article>
               ))}
+              {usuarios.length === 0 && (
+                <EmptyState
+                  title="Sem usuarios"
+                  text="Crie ou importe usuarios para administrar acessos."
+                />
+              )}
             </div>
           </section>
         )}
@@ -494,6 +645,12 @@ const AdminDashboard = () => {
                     <strong>{notificacao.lida ? 'Lida' : 'Nova'}</strong>
                   </div>
                 ))}
+                {notificacoes.length === 0 && (
+                  <EmptyState
+                    title="Sem notificacoes"
+                    text="As mensagens enviadas e automaticas aparecem aqui."
+                  />
+                )}
               </div>
             </section>
           </section>
@@ -514,6 +671,12 @@ const AdminDashboard = () => {
                   <strong>Usuario #{operacao.id_usuario}</strong>
                 </div>
               ))}
+              {operacoes.length === 0 && (
+                <EmptyState
+                  title="Sem registros"
+                  text="As operacoes do sistema aparecem nesta area."
+                />
+              )}
             </div>
           </section>
         )}

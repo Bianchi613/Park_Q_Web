@@ -62,8 +62,18 @@ export class PagamentoService {
     return this.normalizePayload(data);
   }
 
-  async getAllPagamentos(): Promise<Pagamento[]> {
-    return this.pagamentoRepository.findAll();
+  async getAllPagamentos(idEstacionamento?: number): Promise<Pagamento[]> {
+    if (idEstacionamento === undefined) {
+      return this.pagamentoRepository.findAll();
+    }
+
+    const parsedId = Number(idEstacionamento);
+
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+      throw new BadRequestException('id_estacionamento invalido.');
+    }
+
+    return this.pagamentoRepository.findAll(parsedId);
   }
 
   async getPagamentoById(id: number): Promise<Pagamento> {

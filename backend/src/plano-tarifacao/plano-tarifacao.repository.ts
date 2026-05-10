@@ -14,16 +14,64 @@ export class PlanoTarifacaoRepository {
     private readonly planoTarifacaoModel: typeof PlanoTarifacao,
   ) {}
 
-  async findAll(): Promise<PlanoTarifacao[]> {
-    return this.planoTarifacaoModel.findAll({ order: [['id', 'ASC']] });
+  async findAll(idEstacionamento?: number): Promise<PlanoTarifacao[]> {
+    return this.planoTarifacaoModel.findAll({
+      where: idEstacionamento
+        ? { id_estacionamento: idEstacionamento }
+        : undefined,
+      include: ['estacionamento'],
+      order: [
+        ['id_estacionamento', 'ASC'],
+        ['data_vigencia', 'DESC'],
+        ['id', 'DESC'],
+      ],
+    });
   }
 
   async findOne(id: number): Promise<PlanoTarifacao> {
-    const plano = await this.planoTarifacaoModel.findByPk(id);
+    const plano = await this.planoTarifacaoModel.findByPk(id, {
+      include: ['estacionamento'],
+    });
 
     if (!plano) {
       throw new NotFoundException(
         `Plano de tarifacao com ID ${id} nao encontrado.`,
+      );
+    }
+
+    return plano;
+  }
+
+  async findDefaultByEstacionamento(
+    idEstacionamento: number,
+  ): Promise<PlanoTarifacao> {
+    const plano = await this.planoTarifacaoModel.findOne({
+      where: { id_estacionamento: idEstacionamento },
+      include: ['estacionamento'],
+      order: [
+        ['data_vigencia', 'DESC'],
+        ['id', 'DESC'],
+      ],
+    });
+
+    if (!plano) {
+      throw new NotFoundException(
+        `Nenhum plano de tarifacao vinculado ao estacionamento ${idEstacionamento}.`,
+      );
+    }
+
+    return plano;
+  }
+
+  async ensurePlanoDoEstacionamento(
+    planoId: number,
+    idEstacionamento: number,
+  ): Promise<PlanoTarifacao> {
+    const plano = await this.findOne(planoId);
+
+    if (Number(plano.id_estacionamento) !== Number(idEstacionamento)) {
+      throw new BadRequestException(
+        'O plano de tarifacao nao pertence ao estacionamento da vaga selecionada.',
       );
     }
 

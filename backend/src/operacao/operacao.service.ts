@@ -118,7 +118,7 @@ export class OperacaoService {
   }
 
   async findAll(filters: OperacaoFilters = {}): Promise<Operacao[]> {
-    return this.operacaoRepository.findAll(filters);
+    return this.operacaoRepository.findAll(this.normalizeFilters(filters));
   }
 
   async findOne(id: number): Promise<Operacao> {
@@ -143,5 +143,21 @@ export class OperacaoService {
     }
 
     return tipo;
+  }
+
+  private normalizeFilters(filters: OperacaoFilters): OperacaoFilters {
+    const normalized = { ...filters };
+
+    if (normalized.id_estacionamento !== undefined) {
+      const parsedId = Number(normalized.id_estacionamento);
+
+      if (!Number.isInteger(parsedId) || parsedId <= 0) {
+        throw new BadRequestException('id_estacionamento invalido.');
+      }
+
+      normalized.id_estacionamento = parsedId;
+    }
+
+    return normalized;
   }
 }

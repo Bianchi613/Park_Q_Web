@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -69,8 +70,10 @@ export class UsuarioController {
     status: 200,
     description: 'Lista de usuarios retornada com sucesso.',
   })
-  async findAll() {
-    const usuarios = await this.usuarioService.findAll();
+  async findAll(@Query('id_estacionamento') idEstacionamento?: string) {
+    const usuarios = await this.usuarioService.findAll(
+      idEstacionamento ? Number(idEstacionamento) : undefined,
+    );
     return usuarios.map((usuario) => this.serialize(usuario));
   }
 

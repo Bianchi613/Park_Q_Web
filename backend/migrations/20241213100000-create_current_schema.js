@@ -27,12 +27,16 @@ module.exports = {
         "id" SERIAL PRIMARY KEY,
         "descricao" VARCHAR(255),
         "data_vigencia" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        "id_estacionamento" INT NOT NULL REFERENCES "Estacionamentos"("id") ON UPDATE CASCADE ON DELETE CASCADE,
         "taxa_base" DECIMAL(10, 2) NOT NULL,
         "taxa_hora" DECIMAL(10, 2),
         "taxa_diaria" DECIMAL(10, 2),
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE "PlanoTarifacaos"
+        ADD COLUMN IF NOT EXISTS "id_estacionamento" INT;
 
       CREATE TABLE IF NOT EXISTS "Usuarios" (
         "id" SERIAL PRIMARY KEY,

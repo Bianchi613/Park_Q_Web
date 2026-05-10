@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../Layout/Header";
-import { planosApi } from "../../services/api";
+import { estacionamentosApi, planosApi } from "../../services/api";
 import "./TariffPlan.css";
 
 const TariffPlan = () => {
   const navigate = useNavigate();
   const [planos, setPlanos] = useState([]);
+  const [estacionamentos, setEstacionamentos] = useState([]);
+  const [selectedParkingId, setSelectedParkingId] = useState(
+    localStorage.getItem("id_estacionamento") || "",
+  );
   const [descricao, setDescricao] = useState("");
   const [dataVigencia, setDataVigencia] = useState("");
   const [taxaBase, setTaxaBase] = useState("");
@@ -17,13 +21,24 @@ const TariffPlan = () => {
   const [success, setSuccess] = useState(null);
 
   useEffect(() => {
-    fetchPlanos();
+    fetchData();
   }, []);
 
-  const fetchPlanos = async () => {
+  const fetchData = async () => {
     try {
-      const data = await planosApi.list();
-      setPlanos(data);
+      const [planosData, estacionamentosData] = await Promise.all([
+        planosApi.list(),
+        estacionamentosApi.list(),
+      ]);
+      const parkingList = Array.isArray(estacionamentosData)
+        ? estacionamentosData
+        : [];
+
+      setPlanos(Array.isArray(planosData) ? planosData : []);
+      setEstacionamentos(parkingList);
+      setSelectedParkingId(
+        (current) => current || (parkingList[0]?.id ? String(parkingList[0].id) : ""),
+      );
     } catch (requestError) {
       setError("Erro ao buscar planos de tarifacao.");
       console.error(requestError);
@@ -42,6 +57,11 @@ const TariffPlan = () => {
       return;
     }
 
+    if (!selectedParkingId) {
+      setError("Selecione o estacionamento deste plano.");
+      return;
+    }
+
     if (new Date(dataVigencia) < new Date()) {
       setError("A data de vigencia nao pode ser uma data passada.");
       return;
@@ -49,6 +69,7 @@ const TariffPlan = () => {
 
     const novoPlano = {
       descricao,
+      id_estacionamento: Number(selectedParkingId),
       data_vigencia: dataVigencia,
       taxa_base: parseFloat(taxaBase),
       taxa_hora: parseFloat(taxaHora),
@@ -64,7 +85,7 @@ const TariffPlan = () => {
         setSuccess("Plano criado com sucesso!");
       }
 
-      fetchPlanos();
+      fetchData();
       resetForm();
       setError(null);
     } catch (requestError) {
@@ -77,7 +98,7 @@ const TariffPlan = () => {
     try {
       await planosApi.remove(id);
       setSuccess("Plano excluido com sucesso!");
-      fetchPlanos();
+      fetchData();
     } catch (requestError) {
       setError("Erro ao excluir plano de tarifacao.");
       console.error(requestError);
@@ -86,6 +107,7 @@ const TariffPlan = () => {
 
   const handleEdit = (plano) => {
     setEditingPlan(plano);
+    setSelectedParkingId(String(plano.id_estacionamento || ""));
     setDescricao(plano.descricao);
     setDataVigencia(plano.data_vigencia.split("T")[0]);
     setTaxaBase(plano.taxa_base);
@@ -101,6 +123,10 @@ const TariffPlan = () => {
     setTaxaDiaria("");
     setEditingPlan(null);
   };
+
+  const getParkingName = (id) =>
+    estacionamentos.find((parking) => String(parking.id) === String(id))?.nome ||
+    "Estacionamento nao informado";
 
   return (
     <div className="tariff-page">
@@ -125,6 +151,18 @@ const TariffPlan = () => {
 
         <form onSubmit={handleSubmit} className="tariff-form">
           <div className="tariff-form-grid">
+            <select
+              value={selectedParkingId}
+              onChange={(event) => setSelectedParkingId(event.target.value)}
+              required
+            >
+              <option value="">Selecione o estacionamento</option>
+              {estacionamentos.map((parking) => (
+                <option key={parking.id} value={parking.id}>
+                  {parking.nome}
+                </option>
+              ))}
+            </select>
             <input
               type="text"
               placeholder="Descricao"
@@ -173,6 +211,7 @@ const TariffPlan = () => {
                 <div className="tariff-plan-card">
                   <div>
                     <h3>{plano.descricao}</h3>
+                    <p>{getParkingName(plano.id_estacionamento)}</p>
                     <p>Vigencia: {plano.data_vigencia.split("T")[0]}</p>
                     <p>Taxa Base: R${plano.taxa_base}</p>
                     <p>Taxa Hora: R${plano.taxa_hora}</p>

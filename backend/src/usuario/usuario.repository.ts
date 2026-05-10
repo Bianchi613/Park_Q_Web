@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Transaction } from 'sequelize';
+import { Op, Transaction, literal } from 'sequelize';
 import { Usuario } from './usuario.model';
 
 @Injectable()
@@ -17,8 +17,26 @@ export class UsuarioRepository {
     return this.usuarioModel.create(data, { transaction });
   }
 
-  async findAll(): Promise<Usuario[]> {
+  async findAll(idEstacionamento?: number): Promise<Usuario[]> {
+    const where: any = {};
+
+    if (idEstacionamento) {
+      where[Op.or] = [
+        { id_estacionamento: idEstacionamento },
+        literal(`
+          EXISTS (
+            SELECT 1
+            FROM "Reservas" r
+            INNER JOIN "Vagas" v ON v."id" = r."id_vaga"
+            WHERE r."id_usuario" = "Usuario"."id"
+              AND v."id_estacionamento" = ${idEstacionamento}
+          )
+        `),
+      ];
+    }
+
     return this.usuarioModel.findAll({
+      where,
       attributes: { exclude: ['senha'] },
       order: [['id', 'ASC']],
     });

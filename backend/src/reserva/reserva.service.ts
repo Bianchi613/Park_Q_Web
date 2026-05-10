@@ -215,12 +215,6 @@ export class ReservaService {
       return;
     }
 
-    if (!data.id_plano) {
-      throw new BadRequestException(
-        'valor ou id_plano e obrigatorio para calcular a reserva.',
-      );
-    }
-
     if (!data.data_fim) {
       throw new BadRequestException(
         'data_fim e obrigatoria para calcular o valor da reserva.',
@@ -242,16 +236,19 @@ export class ReservaService {
       return;
     }
 
-    if (
-      !data.id_plano ||
-      !data.id_vaga ||
-      !data.data_reserva ||
-      !data.data_fim
-    ) {
+    if (!data.id_vaga || !data.data_reserva || !data.data_fim) {
       return;
     }
 
     const vaga = await this.vagaService.findOne(data.id_vaga);
+    const plano = data.id_plano
+      ? await this.planoTarifacaoService.ensurePlanoDoEstacionamento(
+          data.id_plano,
+          vaga.id_estacionamento,
+        )
+      : await this.planoTarifacaoService.findDefaultByEstacionamento(
+          vaga.id_estacionamento,
+        );
     const duracaoHoras = this.planoTarifacaoService.calcularDuracaoHoras(
       data.data_reserva,
       data.data_fim,
@@ -259,9 +256,10 @@ export class ReservaService {
     const tarifa = await this.planoTarifacaoService.calcularTarifaDetalhada(
       vaga.tipo,
       duracaoHoras,
-      data.id_plano,
+      plano.id,
     );
 
+    data.id_plano = plano.id;
     data.valor = tarifa.valor;
   }
 

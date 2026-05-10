@@ -21,7 +21,7 @@ export const authApi = {
 };
 
 export const usuariosApi = {
-  list: () => unwrap(api.get('/usuarios')),
+  list: (params = {}) => unwrap(api.get('/usuarios', { params })),
   get: (id) => unwrap(api.get(`/usuarios/${id}`)),
   create: (payload) => unwrap(api.post('/usuarios', payload)),
   update: (id, payload) => unwrap(api.put(`/usuarios/${id}`, payload)),
@@ -58,7 +58,7 @@ export const vagasApi = {
 };
 
 export const planosApi = {
-  list: () => unwrap(api.get('/planos-tarifacao')),
+  list: (params = {}) => unwrap(api.get('/planos-tarifacao', { params })),
   get: (id) => unwrap(api.get(`/planos-tarifacao/${id}`)),
   create: (payload) => unwrap(api.post('/planos-tarifacao', payload)),
   update: (id, payload) => unwrap(api.patch(`/planos-tarifacao/${id}`, payload)),
@@ -79,7 +79,7 @@ export const reservasApi = {
 };
 
 export const pagamentosApi = {
-  list: () => unwrap(api.get('/pagamentos')),
+  list: (params = {}) => unwrap(api.get('/pagamentos', { params })),
   get: (id) => unwrap(api.get(`/pagamentos/${id}`)),
   create: (payload) => unwrap(api.post('/pagamentos', payload)),
   update: (id, payload) => unwrap(api.put(`/pagamentos/${id}`, payload)),

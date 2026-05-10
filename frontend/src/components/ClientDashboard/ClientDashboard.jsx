@@ -305,6 +305,34 @@ const ClientDashboard = () => {
     [selectedVagaId, vagasDisponiveis],
   );
 
+  const planosDoEstacionamento = useMemo(
+    () =>
+      selectedParkingId
+        ? planos.filter(
+            (plano) =>
+              String(plano.id_estacionamento) === String(selectedParkingId),
+          )
+        : [],
+    [planos, selectedParkingId],
+  );
+
+  useEffect(() => {
+    setTarifaForm((current) => {
+      const planoAtualPertenceAoEstacionamento = planosDoEstacionamento.some(
+        (plano) => String(plano.id) === String(current.planoId),
+      );
+
+      if (planoAtualPertenceAoEstacionamento) {
+        return current;
+      }
+
+      return {
+        ...current,
+        planoId: planosDoEstacionamento[0]?.id || '',
+      };
+    });
+  }, [planosDoEstacionamento]);
+
   const vagasPorTipo = useMemo(() => {
     const groups = [
       {
@@ -788,7 +816,7 @@ const ClientDashboard = () => {
                   }
                 >
                   <option value="">Selecione</option>
-                  {planos.map((plano) => (
+                  {planosDoEstacionamento.map((plano) => (
                     <option key={plano.id} value={plano.id}>
                       {plano.descricao || `Plano ${plano.id}`}
                     </option>
@@ -836,9 +864,11 @@ const ClientDashboard = () => {
             </div>
 
             <div className="client-card">
-              <h3>Planos disponiveis</h3>
+              <h3>
+                Planos de {selectedParking?.nome || 'estacionamento selecionado'}
+              </h3>
               <div className="plan-grid">
-                {planos.map((plano) => (
+                {planosDoEstacionamento.map((plano) => (
                   <article key={plano.id}>
                     <strong>{plano.descricao || `Plano ${plano.id}`}</strong>
                     <span>Base: {formatMoney(plano.taxa_base)}</span>
@@ -846,6 +876,12 @@ const ClientDashboard = () => {
                     <span>Diaria: {formatMoney(plano.taxa_diaria)}</span>
                   </article>
                 ))}
+                {planosDoEstacionamento.length === 0 && (
+                  <article>
+                    <strong>Sem plano cadastrado</strong>
+                    <span>Este estacionamento ainda nao tem tarifa propria.</span>
+                  </article>
+                )}
               </div>
             </div>
           </section>

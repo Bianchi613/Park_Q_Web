@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -58,9 +59,13 @@ export class PagamentoController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Retorna todos os pagamentos' })
-  async findAll(): Promise<Pagamento[]> {
-    return this.pagamentoService.getAllPagamentos();
+  @ApiOperation({ summary: 'Retorna pagamentos, opcionalmente por estacionamento' })
+  async findAll(
+    @Query('id_estacionamento') idEstacionamento?: string,
+  ): Promise<Pagamento[]> {
+    return this.pagamentoService.getAllPagamentos(
+      idEstacionamento ? Number(idEstacionamento) : undefined,
+    );
   }
 
   @Get(':id')
