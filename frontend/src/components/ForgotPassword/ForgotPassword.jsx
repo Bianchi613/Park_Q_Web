@@ -9,8 +9,8 @@ const ForgotPassword = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Lógica para enviar o email de recuperação de senha
-    setMessage('Instruções de recuperação foram enviadas para o seu e-mail.');
+    // Logica para enviar o email de recuperacao de senha
+    setMessage('Instrucoes de recuperacao foram enviadas para o seu e-mail.');
 
     // Redirecionar para a página de login após 3 segundos
     setTimeout(() => {
@@ -34,7 +34,7 @@ const ForgotPassword = () => {
           />
         </div>
         <button type="submit" className="submit-button">
-          Enviar Instruções
+          Enviar instrucoes
         </button>
       </form>
       {message && <p className="message">{message}</p>}

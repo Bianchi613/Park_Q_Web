@@ -113,6 +113,10 @@
   background: #161616;
 }
 
+.brand-button + .header-buttons {
+  margin-left: auto;
+}
+
 .profile-button,
 .logout-button,
 .header-icon-button {
@@ -172,6 +176,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.notification-badge.has-new {
+  animation: notification-pop 0.9s ease-in-out 3;
+  background: #24a148;
+}
+
+@keyframes notification-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.28);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .header-nav-tabs::-webkit-scrollbar {

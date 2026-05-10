@@ -31,12 +31,12 @@ function Register() {
     setError("");
 
     if (formData.senha !== formData.confirmarSenha) {
-      setError("As senhas não coincidem!");
+      setError("As senhas nao coincidem!");
       return;
     }
 
     if (!formData.CPF) {
-      setError("O CPF é obrigatório.");
+      setError("O CPF e obrigatorio.");
       return;
     }
 
@@ -60,7 +60,7 @@ function Register() {
       navigate("/login");
 
     } catch (err) {
-      setError(err.response?.data?.message || "Erro ao cadastrar usuário. Verifique os dados e tente novamente.");
+      setError(err.response?.data?.message || "Erro ao cadastrar usuario. Verifique os dados e tente novamente.");
       console.error(err);
     }
   };
@@ -68,6 +68,7 @@ function Register() {
   return (
     <div className="register-container">
       <form className="register-form" onSubmit={handleSubmit}>
+        <h2>Criar conta</h2>
         <label>Nome Completo</label>
         <input type="text" name="nome" value={formData.nome} onChange={handleChange} required />
 
@@ -86,13 +87,13 @@ function Register() {
         <label>Senha</label>
         <input type="password" name="senha" value={formData.senha} onChange={handleChange} required />
 
-        <label>Confirmação de Senha</label>
+        <label>Confirmacao de Senha</label>
         <input type="password" name="confirmarSenha" value={formData.confirmarSenha} onChange={handleChange} required />
 
         <div className="admin-toggle">
           <label>Tipo de Perfil</label>
           <input type="checkbox" name="isAdmin" checked={formData.isAdmin} onChange={handleChange} />
-          <span className="toggle-description">Só acione este botão caso você seja um administrador.</span>
+          <span className="toggle-description">So acione este campo caso voce seja um administrador.</span>
         </div>
 
         {error && <p className="error-message">{error}</p>}

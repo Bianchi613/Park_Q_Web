@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Importe o useNavigate
-import Header from "../Layout/Header"; // Importe o Header
+import { useNavigate } from "react-router-dom";
+import Header from "../Layout/Header";
 import { planosApi } from "../../services/api";
-import './TariffPlan.css';
+import "./TariffPlan.css";
 
 const TariffPlan = () => {
-  const navigate = useNavigate(); // Hook para navegação
+  const navigate = useNavigate();
   const [planos, setPlanos] = useState([]);
   const [descricao, setDescricao] = useState("");
   const [dataVigencia, setDataVigencia] = useState("");
@@ -24,20 +24,26 @@ const TariffPlan = () => {
     try {
       const data = await planosApi.list();
       setPlanos(data);
-    } catch (error) {
-      setError("Erro ao buscar planos de tarifação.");
-      console.error(error);
+    } catch (requestError) {
+      setError("Erro ao buscar planos de tarifacao.");
+      console.error(requestError);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (parseFloat(taxaBase) < 0 || parseFloat(taxaHora) < 0 || parseFloat(taxaDiaria) < 0) {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (
+      parseFloat(taxaBase) < 0 ||
+      parseFloat(taxaHora) < 0 ||
+      parseFloat(taxaDiaria) < 0
+    ) {
       setError("As taxas devem ser valores positivos.");
       return;
     }
+
     if (new Date(dataVigencia) < new Date()) {
-      setError("A data de vigência não pode ser uma data passada.");
+      setError("A data de vigencia nao pode ser uma data passada.");
       return;
     }
 
@@ -57,23 +63,24 @@ const TariffPlan = () => {
         await planosApi.create(novoPlano);
         setSuccess("Plano criado com sucesso!");
       }
+
       fetchPlanos();
       resetForm();
       setError(null);
-    } catch (error) {
-      setError("Erro ao salvar plano de tarifação.");
-      console.error(error);
+    } catch (requestError) {
+      setError("Erro ao salvar plano de tarifacao.");
+      console.error(requestError);
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await planosApi.remove(id);
-      setSuccess("Plano excluído com sucesso!");
+      setSuccess("Plano excluido com sucesso!");
       fetchPlanos();
-    } catch (error) {
-      setError("Erro ao excluir plano de tarifação.");
-      console.error(error);
+    } catch (requestError) {
+      setError("Erro ao excluir plano de tarifacao.");
+      console.error(requestError);
     }
   };
 
@@ -96,109 +103,99 @@ const TariffPlan = () => {
   };
 
   return (
-    <div className="flex">
-      {/* Incluindo o Header */}
-      <Header /> 
+    <div className="tariff-page">
+      <Header />
 
-      {/* Conteúdo principal à direita */}
-      <div className="p-6 bg-gray-50 min-h-screen flex-1">
-        {/* Botão para voltar ao Admin Dashboard */}
+      <main className="tariff-shell">
         <button
           className="back-button"
-          onClick={() => navigate("/admin-dashboard")} // Redireciona para o dashboard
+          type="button"
+          onClick={() => navigate("/admin-dashboard")}
         >
-          Voltar ao Admin Dashboard
+          Voltar ao dashboard
         </button>
 
-        <h2 className="text-2xl font-semibold text-center mb-6">Planos de Tarifação</h2>
-        {error && <p className="text-red-600 text-center mb-4">{error}</p>}
-        {success && <p className="text-green-600 text-center mb-4">{success}</p>}
+        <section className="tariff-heading">
+          <p className="eyebrow">Tarifas</p>
+          <h2>Planos de tarifacao</h2>
+        </section>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {error && <p className="tariff-message error">{error}</p>}
+        {success && <p className="tariff-message success">{success}</p>}
+
+        <form onSubmit={handleSubmit} className="tariff-form">
+          <div className="tariff-form-grid">
             <input
               type="text"
-              placeholder="Descrição"
+              placeholder="Descricao"
               value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              className="border p-2 w-full rounded-lg"
+              onChange={(event) => setDescricao(event.target.value)}
               required
             />
             <input
               type="date"
               value={dataVigencia}
-              onChange={(e) => setDataVigencia(e.target.value)}
-              className="border p-2 w-full rounded-lg"
+              onChange={(event) => setDataVigencia(event.target.value)}
               required
             />
             <input
               type="number"
               placeholder="Taxa Base"
               value={taxaBase}
-              onChange={(e) => setTaxaBase(e.target.value)}
-              className="border p-2 w-full rounded-lg"
+              onChange={(event) => setTaxaBase(event.target.value)}
               required
             />
             <input
               type="number"
               placeholder="Taxa Hora"
               value={taxaHora}
-              onChange={(e) => setTaxaHora(e.target.value)}
-              className="border p-2 w-full rounded-lg"
+              onChange={(event) => setTaxaHora(event.target.value)}
               required
             />
             <input
               type="number"
-              placeholder="Taxa Diária"
+              placeholder="Taxa Diaria"
               value={taxaDiaria}
-              onChange={(e) => setTaxaDiaria(e.target.value)}
-              className="border p-2 w-full rounded-lg"
+              onChange={(event) => setTaxaDiaria(event.target.value)}
               required
             />
           </div>
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-blue-700 transition-colors"
-          >
-            {editingPlan ? "Atualizar Plano" : "Criar Plano"}
+          <button type="submit">
+            {editingPlan ? "Atualizar plano" : "Criar plano"}
           </button>
         </form>
 
-        {/* Lista de Planos */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Planos Cadastrados</h3>
+        <section className="tariff-list">
+          <h3>Planos cadastrados</h3>
           <div className="carousel-container">
             {planos.map((plano) => (
-              <div key={plano.id} className="carousel-item">
-                <div className="flex flex-col justify-between h-full">
+              <article key={plano.id} className="carousel-item">
+                <div className="tariff-plan-card">
                   <div>
-                    <h3 className="text-lg font-bold">{plano.descricao}</h3>
-                    <p className="text-sm text-gray-500">Vigência: {plano.data_vigencia.split("T")[0]}</p>
-                    <p className="text-sm">Taxa Base: R${plano.taxa_base}</p>
-                    <p className="text-sm">Taxa Hora: R${plano.taxa_hora}</p>
-                    <p className="text-sm">Taxa Diária: R${plano.taxa_diaria}</p>
+                    <h3>{plano.descricao}</h3>
+                    <p>Vigencia: {plano.data_vigencia.split("T")[0]}</p>
+                    <p>Taxa Base: R${plano.taxa_base}</p>
+                    <p>Taxa Hora: R${plano.taxa_hora}</p>
+                    <p>Taxa Diaria: R${plano.taxa_diaria}</p>
                   </div>
-                  <div className="carousel-buttons mt-4">
-                    <button
-                      onClick={() => handleEdit(plano)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors"
-                    >
+                  <div className="carousel-buttons">
+                    <button type="button" onClick={() => handleEdit(plano)}>
                       Editar
                     </button>
                     <button
+                      type="button"
+                      className="danger-button"
                       onClick={() => handleDelete(plano.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-colors"
                     >
                       Excluir
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };

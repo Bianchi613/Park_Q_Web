@@ -1,41 +1,139 @@
+.tariff-page {
+  min-height: 100vh;
+  background: var(--park-bg);
+  color: var(--park-text);
+}
+
+.tariff-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.tariff-shell .back-button {
+  border: 1px solid var(--park-border);
+  background: var(--park-surface);
+  color: var(--park-text);
+}
+
+.tariff-heading,
+.tariff-form,
+.tariff-list {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--park-border);
+  border-radius: var(--park-radius);
+  background: var(--park-surface);
+  box-shadow: var(--park-shadow);
+}
+
+.tariff-heading h2,
+.tariff-list h3,
+.carousel-item h3 {
+  margin: 0;
+  color: var(--park-heading);
+}
+
+.tariff-message {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--park-radius);
+  font-weight: 700;
+}
+
+.tariff-message.error {
+  background: var(--park-alert-bg);
+  color: var(--park-alert-text);
+}
+
+.tariff-message.success {
+  background: var(--park-accent-soft);
+  color: #065f46;
+}
+
+.tariff-form {
+  display: grid;
+  gap: 14px;
+}
+
+.tariff-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tariff-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c8d3e0;
+  border-radius: 6px;
+  background: var(--park-surface);
+  color: var(--park-text);
+}
+
+.tariff-form button {
+  justify-self: end;
+}
+
 .carousel-container {
-    display: flex;
-    overflow-x: auto;
-    gap: 16px;
-    padding-bottom: 16px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none; /* Esconde a barra de rolagem no Firefox */
-    -ms-overflow-style: none; /* Esconde a barra de rolagem no IE/Edge */
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-item {
+  width: 280px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: 16px;
+  border: 1px solid var(--park-border-soft);
+  border-radius: var(--park-radius);
+  background: var(--park-surface-muted);
+}
+
+.tariff-plan-card {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tariff-plan-card p {
+  margin: 7px 0 0;
+  color: var(--park-muted);
+}
+
+.carousel-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.danger-button {
+  background: var(--park-danger);
+}
+
+.danger-button:hover {
+  background: #991b1b;
+}
+
+@media (max-width: 680px) {
+  .tariff-form-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .carousel-container::-webkit-scrollbar {
-    display: none; /* Esconde a barra de rolagem no Chrome/Safari */
-  }
-  
-  .carousel-item {
-    background-color: white;
-    padding: 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-    width: 280px; /* Largura fixa para cada item */
-    scroll-snap-align: start;
-    transition: transform 0.3s ease;
-  }
-  
-  .carousel-item:hover {
-    transform: translateY(-5px); /* Efeito de levantar ao passar o mouse */
-  }
-  
+
+  .tariff-form button,
   .carousel-buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
+    justify-self: stretch;
+    flex-direction: column;
   }
-  
-  .carousel-buttons button {
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+}

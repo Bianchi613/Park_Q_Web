@@ -127,6 +127,10 @@
   z-index: 1;
 }
 
+.map-panel .leaflet-left {
+  left: calc(clamp(330px, 25vw, 420px) + 30px);
+}
+
 .parking-panel,
 .spot-panel {
   position: relative;
@@ -183,6 +187,33 @@
   background: #f3f4f6;
   color: #111827;
   font-size: 1rem;
+}
+
+.radius-control {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.radius-control > span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.radius-control strong {
+  color: #111827;
+  font-size: 0.9rem;
+}
+
+.radius-control input {
+  margin-top: 0;
+  padding: 0;
 }
 
 .ride-meta {
@@ -422,7 +453,8 @@
   align-items: start;
   gap: 12px;
   width: 100%;
-  padding: 11px 16px;
+  min-height: 96px;
+  padding: 13px 16px;
   border: 0;
   border-bottom: 1px solid #edf2f7;
   border-radius: 0;
@@ -458,17 +490,23 @@
   background: #111111;
 }
 
-.parking-result span:last-child {
-  display: grid;
-  gap: 3px;
+.client-dashboard .parking-result > span:last-child {
+  display: grid !important;
+  grid-template-rows: auto auto auto;
+  gap: 4px;
+  min-width: 0;
 }
 
-.parking-result small,
-.parking-result em {
+.client-dashboard .parking-result small,
+.client-dashboard .parking-result em {
+  display: block !important;
+  visibility: visible !important;
+  min-height: 18px;
   color: #5d6b7d;
   font-size: 0.82rem;
   font-style: normal;
   line-height: 1.35;
+  overflow: visible;
 }
 
 .client-card {
@@ -611,6 +649,10 @@
     margin: 12px;
   }
 
+  .map-panel .leaflet-left {
+    left: calc(min(390px, calc(50% - 18px)) + 24px);
+  }
+
   .spot-panel {
     width: min(360px, calc(50% - 18px));
     margin: 12px;
@@ -645,6 +687,10 @@
   .map-panel,
   .map-panel .leaflet-container {
     min-height: 48dvh;
+  }
+
+  .map-panel .leaflet-left {
+    left: 10px;
   }
 
   .parking-panel,

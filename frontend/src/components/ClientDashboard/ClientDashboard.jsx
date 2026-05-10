@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../Layout/Header';
 import {
   estacionamentosApi,
@@ -15,6 +15,10 @@ import './ClientDashboard.css';
 
 const defaultCenter = [-23.55052, -46.633308];
 const locationStorageKey = 'parkq_user_location';
+const clientDashboardViews = ['buscar', 'reservas', 'notificacoes', 'tarifas'];
+
+const getDashboardView = (value) =>
+  clientDashboardViews.includes(value) ? value : 'buscar';
 
 const toNumber = (value) => {
   const parsed = Number(value);
@@ -117,11 +121,13 @@ const VehicleIcon = ({ type }) => {
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedView = getDashboardView(searchParams.get('view'));
   const userId = localStorage.getItem('userId');
   const role = localStorage.getItem('role');
   const canReserve = role === 'CLIENT';
   const storedLocation = useMemo(() => getStoredLocation(), []);
-  const [activeView, setActiveView] = useState('buscar');
+  const [activeView, setActiveView] = useState(requestedView);
   const [estacionamentos, setEstacionamentos] = useState([]);
   const [planos, setPlanos] = useState([]);
   const [reservas, setReservas] = useState([]);
@@ -210,6 +216,10 @@ const ClientDashboard = () => {
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    setActiveView(requestedView);
+  }, [requestedView]);
 
   useEffect(() => {
     if (!userLocation) {
@@ -335,13 +345,6 @@ const ClientDashboard = () => {
     ['CANCELADA', 'FINALIZADA', 'EXPIRADA'].includes(reserva.status),
   );
   const novasNotificacoes = notificacoes.filter((notificacao) => !notificacao.lida);
-  const dashboardTabs = [
-    ['buscar', 'Buscar vaga'],
-    ['reservas', `Reservas (${reservasAtivas.length})`],
-    ['notificacoes', `Notificacoes (${novasNotificacoes.length})`],
-    ['tarifas', 'Tarifas'],
-  ];
-
   const focusParkingOnMap = (parking) => {
     const lat = toNumber(parking?.latitude);
     const lng = toNumber(parking?.longitude);
@@ -453,20 +456,12 @@ const ClientDashboard = () => {
 
   return (
     <div className="client-dashboard">
-      <Header>
-        <nav className="header-nav-tabs" aria-label="Areas do cliente">
-          {dashboardTabs.map(([id, label]) => (
-            <button
-              key={id}
-              className={activeView === id ? 'active' : ''}
-              type="button"
-              onClick={() => setActiveView(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-      </Header>
+      <Header
+        clientNavCounts={{
+          reservas: reservasAtivas.length,
+          notificacoes: novasNotificacoes.length,
+        }}
+      />
 
       <main className="client-shell">
         {status && <div className="client-alert">{status}</div>}
