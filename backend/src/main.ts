@@ -10,7 +10,21 @@ async function bootstrap() {
   const port = Number(configService.get<string>('PORT') ?? 3000);
   const logger = new Logger('Bootstrap');
 
-  app.enableCors();
+  // Produção exige uma lista explícita de origens autorizadas.
+  const corsOrigins = (configService.get<string>('CORS_ORIGINS') ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const isProduction = configService.get<string>('NODE_ENV') === 'production';
+  if (isProduction && !corsOrigins.length) {
+    throw new Error('CORS_ORIGINS deve ser configurado em produção.');
+  }
+  app.enableCors({
+    origin: corsOrigins.length
+      ? corsOrigins
+      : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    credentials: false,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
