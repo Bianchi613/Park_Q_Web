@@ -16,6 +16,7 @@ Park Q Web e uma aplicacao para gerenciamento e reserva de vagas de estacionamen
 - [Banco de dados](#banco-de-dados)
 - [Scripts uteis](#scripts-uteis)
 - [Observacoes](#observacoes)
+- [Seguranca e implantacao](#seguranca-e-implantacao)
 
 ## Sobre o projeto
 
@@ -416,6 +417,12 @@ npm run build
 npm run lint
 npm run preview
 ```
+
+## Seguranca e implantacao
+
+Desde a atualização do [PR #1](https://github.com/Bianchi613/Park_Q_Web/pull/1), o backend não concede CORS irrestrito: em produção, configure `CORS_ORIGINS` com os endereços exatos dos frontends autorizados, separados por vírgula, como `https://painel.exemplo.com`. Sem essa variável, `NODE_ENV=production` impede o início do backend. Para desenvolvimento, são permitidos somente `localhost:5173` e `127.0.0.1:5173` por padrão.
+
+CORS não substitui login, permissões ou proteção de APIs. Leia [SECURITY.md](SECURITY.md) para detalhes, checklist de verificação, limitações e riscos restantes.
 
 ## Observacoes
 
